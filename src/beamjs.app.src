@@ -1,0 +1,13 @@
+{application, beamjs,
+ [
+  {description, "beam.js"},
+  {vsn, "0.1"},
+  {registered, []},
+  {applications, [
+				  erlv8,
+                  kernel,
+                  stdlib
+                 ]},
+  {mod, { beamjs_app, []}},
+  {env, []}
+ ]}.
