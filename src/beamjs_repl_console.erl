@@ -3,8 +3,7 @@
 -export([read/1,print/1]).
 
 read(Prompt) ->
-	{ok, [Input]} = io:fread(Prompt,"~s"),
-	Input.
+	io:get_line(Prompt).
 
 print({finished, Result}) ->
 	io:format(">>> ~p~n",[Result]);
