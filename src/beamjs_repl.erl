@@ -11,7 +11,7 @@
 
 -define(SERVER, ?MODULE).
 
--record(state, { prompt, im, expr = [] }).
+-record(state, { prompt, im, expr = [], script, global = [] }).
 
 %%%===================================================================
 %%% API
@@ -65,9 +65,10 @@ init([Prompt,InteractionModule]) ->
 %%                   {stop, Reason, NewState}
 %% @end
 %%--------------------------------------------------------------------
-ready(read, #state{ prompt = Prompt, im = IM } = State) ->
+ready(read, #state{ prompt = Prompt, im = IM, global = Global } = State) ->
 	Expr = IM:read(Prompt),
 	{ok, Script} = erlv8:new_script(Expr),
+	erlv8_script:global(Script, Global),
 	Self = self(),
 	spawn(fun () -> 
 				  erlv8_script:add_handler(Script,erlv8_capturer,[fun (X) -> 
@@ -75,12 +76,12 @@ ready(read, #state{ prompt = Prompt, im = IM } = State) ->
 																  end]),
 				  erlv8_script:run(Script)
 		  end),
-	{next_state, eval, State#state{ expr = Expr}}.
+	{next_state, eval, State#state{ expr = Expr, script = Script}}.
 
-eval({result, X}, #state{ im = IM } = State) ->
+eval({result, X}, #state{ script = Script, im = IM } = State) ->
 	IM:print(X),
 	gen_fsm:send_event(self(),read),
-	{next_state, ready, State}.
+	{next_state, ready, State#state { global = erlv8_script:global(Script), script = undefined }}.
 
 %% state_name(_Event, State) ->
 %% 	{next_state, state_name, State}.
