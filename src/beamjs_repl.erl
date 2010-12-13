@@ -83,8 +83,6 @@ eval({result, X}, #state{ script = Script, im = IM } = State) ->
 	gen_fsm:send_event(self(),read),
 	{next_state, ready, State#state { global = erlv8_script:global(Script), script = undefined }}.
 
-%% state_name(_Event, State) ->
-%% 	{next_state, state_name, State}.
 
 %%--------------------------------------------------------------------
 %% @private
