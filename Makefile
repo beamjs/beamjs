@@ -16,4 +16,4 @@ compile: dependencies
 	@./rebar compile
 
 console:
-	@erl -pa ebin deps/erlv8/ebin -s erlv8 -s beamjs -s beamjs_repl -noshell
+	@erl -pa ebin deps/erlv8/ebin -s erlv8 -s beamjs -eval "supervisor:start_child(beamjs_repl_sup,[\"beam.js> \", beamjs_repl_console])" -noshell

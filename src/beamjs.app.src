@@ -9,5 +9,9 @@
                   stdlib
                  ]},
   {mod, { beamjs_app, []}},
-  {env, []}
+  {env, [
+		 {default_mods,
+		  []
+		 }
+		]}
  ]}.
