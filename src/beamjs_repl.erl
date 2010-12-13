@@ -48,7 +48,6 @@ start_link(Prompt,InteractionModule) ->
 %%--------------------------------------------------------------------
 init([Prompt,InteractionModule]) ->
 	gen_fsm:send_event(self(),read),
-	InteractionModule:print("Beam.JS REPL"),
 	{ok, ready, #state{ prompt = Prompt, im = InteractionModule }}.
 
 %%--------------------------------------------------------------------

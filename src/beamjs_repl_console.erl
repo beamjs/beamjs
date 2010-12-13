@@ -6,8 +6,6 @@ read(Prompt) ->
 	{ok, [Input]} = io:fread(Prompt,"~s"),
 	Input.
 
-print(S) when is_list(S) ->
-	io:format("~s~n",[S]);
 print({finished, Result}) ->
 	io:format(">>> ~p~n",[Result]);
 print({exception, Exception}) ->
