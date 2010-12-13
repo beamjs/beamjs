@@ -6,6 +6,6 @@ read(Prompt) ->
 	io:get_line(Prompt).
 
 print({finished, Result}) ->
-	io:format(">>> ~p~n",[Result]);
+	io:format("~p~n",[Result]);
 print({exception, Exception}) ->
 	io:format("    Exception: ~p~n",[Exception]).
