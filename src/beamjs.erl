@@ -10,8 +10,11 @@ stop() ->
 
 args([]) ->
 	ok;
-args(["-net"|Rest]) ->
-	net_kernel:start([beamjs,shortnames]),
+args(["-sname",Node|Rest]) ->
+	net_kernel:start([list_to_atom(Node),shortnames]),
+	args(Rest);
+args(["-name",Node|Rest]) ->
+	net_kernel:start([list_to_atom(Node),longnames]),
 	args(Rest);
 args(["-toolbar"|Rest]) ->
 	toolbar:start(),
