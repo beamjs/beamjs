@@ -1,4 +1,4 @@
-all: compile 
+all: beamjs
 
 submodules:
 	@git submodule init
@@ -15,5 +15,5 @@ test: compile
 compile: dependencies
 	@./rebar compile
 
-console: compile
-	@./console
+beamjs: compile
+	@./rebar escriptize
