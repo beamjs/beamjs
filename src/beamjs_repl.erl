@@ -76,12 +76,14 @@ ready(read, #state{ prompt = Prompt, im = IM, global = Global } = State) ->
 																  end]),
 				  erlv8_script:run(Script)
 		  end),
-	{next_state, eval, State#state{ expr = Expr, script = Script}}.
+	{next_state, eval, State#state{ expr = Expr, script = Script }}.
 
 eval({result, X}, #state{ script = Script, im = IM } = State) ->
 	IM:print(X),
 	gen_fsm:send_event(self(),read),
-	{next_state, ready, State#state { global = erlv8_script:global(Script), script = undefined }}.
+	Global = erlv8_script:global(Script),
+	erlv8_script:stop(Script),
+	{next_state, ready, State#state { global = Global, script = undefined }}.
 
 
 %%--------------------------------------------------------------------
