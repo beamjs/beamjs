@@ -21,6 +21,9 @@ load_default_mods(Script) ->
 
 args(_,Resolution,[]) ->
 	Resolution;
+args(Script,Resolution,["-pa",Path|Rest]) ->
+	code:add_patha(Path),
+	args(Script,Resolution,Rest);
 args(Script,Resolution,["-sname",Node|Rest]) ->
 	net_kernel:start([list_to_atom(Node),shortnames]),
 	args(Script,Resolution,Rest);
