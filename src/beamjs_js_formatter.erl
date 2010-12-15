@@ -21,6 +21,9 @@ format(Script,Expr) when is_list(Expr) ->
 			end
 	end;
 
+format(_Script,undefined) ->
+	"";
+
 format(Script,Expr) ->
 	erlv8_script:to_detail_string(Script,Expr).
 
