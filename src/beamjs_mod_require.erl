@@ -8,7 +8,6 @@ exports() ->
 require(Script, #erlv8_fun_invocation{} = Invocation, Filename) ->
 	case application:get_env(beamjs,available_mods) of
 		{ok, Mods} ->
-			io:format("Mods = ~p File = ~p~n",[Mods,Filename]),
 			case proplists:get_value(Filename,Mods) of
 				undefined ->
 					require_file(Script, Invocation, Filename);
