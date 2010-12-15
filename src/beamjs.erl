@@ -19,13 +19,13 @@ args(["-name",Node|Rest]) ->
 args(["-toolbar"|Rest]) ->
 	toolbar:start(),
 	args(Rest);
-args([File|Rest]) ->
+
+args(File) when is_list(File) ->
 	{ok, B} = file:read_file(File),
 	S = binary_to_list(B),
 	{ok, Script} = erlv8:new_script(S),
 	erlv8_script:run(Script),
-	args(Rest).
-
+	Script.
 	
 main(Args) ->
 	case os:getenv("ERLV8_SO_PATH") of
@@ -33,9 +33,13 @@ main(Args) ->
 			os:putenv("ERLV8_SO_PATH","./deps/erlv8/priv")
 	end,
 	erlv8:start(),
-	args(Args),
 	start(),
-	supervisor:start_child(beamjs_repl_sup,["beam.js> ", beamjs_repl_console]),
+	case args(Args) of
+		ok ->
+			supervisor:start_child(beamjs_repl_sup,["beam.js> ", beamjs_repl_console]);
+		Script ->
+			supervisor:start_child(beamjs_repl_sup,["beam.js> ", beamjs_repl_console, Script])
+	end,
 	receive 
 		_ ->
 			ok

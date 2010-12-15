@@ -3,7 +3,7 @@
 -behaviour(gen_fsm).
 
 %% API
--export([start_link/2]).
+-export([start_link/2, start_link/3]).
 
 %% gen_fsm callbacks
 -export([init/1, ready/2, eval/2, handle_event/3,
@@ -27,7 +27,10 @@
 %% @end
 %%--------------------------------------------------------------------
 start_link(Prompt,InteractionModule) ->
-	gen_fsm:start_link(?MODULE, [Prompt,InteractionModule], []).
+	start_link(Prompt, InteractionModule, undefined).
+
+start_link(Prompt,InteractionModule,Script) ->
+	gen_fsm:start_link(?MODULE, [Prompt,InteractionModule,Script], []).
 
 %%%===================================================================
 %%% gen_fsm callbacks
@@ -46,8 +49,10 @@ start_link(Prompt,InteractionModule) ->
 %%                     {stop, StopReason}
 %% @end
 %%--------------------------------------------------------------------
-init([Prompt,InteractionModule]) ->
-	{ok, Script} = erlv8:new_script("1"),
+init([Prompt, InteractionModule, undefined]) ->
+	{ok, Script} = erlv8:new_script(""),
+	init([Prompt, InteractionModule, Script]);
+init([Prompt, InteractionModule, Script]) ->
 	link(Script),
 	Self = self(),
 	erlv8_script:add_handler(Script,erlv8_capturer,[fun (X) -> 
