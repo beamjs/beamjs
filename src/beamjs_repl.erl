@@ -11,7 +11,7 @@
 
 -define(SERVER, ?MODULE).
 
--record(state, { prompt, im, expr = [], script, global = [] }).
+-record(state, { prompt, im, expr = [], script }).
 
 %%%===================================================================
 %%% API
@@ -47,8 +47,14 @@ start_link(Prompt,InteractionModule) ->
 %% @end
 %%--------------------------------------------------------------------
 init([Prompt,InteractionModule]) ->
+	{ok, Script} = erlv8:new_script("1"),
+	link(Script),
+	Self = self(),
+	erlv8_script:add_handler(Script,erlv8_capturer,[fun (X) -> 
+															gen_fsm:send_event(Self,{result, X})
+													end]),
 	gen_fsm:send_event(self(),read),
-	{ok, ready, #state{ prompt = Prompt, im = InteractionModule }}.
+	{ok, ready, #state{ prompt = Prompt, im = InteractionModule, script = Script}}.
 
 %%--------------------------------------------------------------------
 %% @private
@@ -65,25 +71,16 @@ init([Prompt,InteractionModule]) ->
 %%                   {stop, Reason, NewState}
 %% @end
 %%--------------------------------------------------------------------
-ready(read, #state{ prompt = Prompt, im = IM, global = Global } = State) ->
+ready(read, #state{ prompt = Prompt, im = IM, script = Script } = State) ->
 	Expr = IM:read(Prompt),
-	{ok, Script} = erlv8:new_script(Expr),
-	erlv8_script:global(Script, Global),
-	Self = self(),
-	spawn(fun () -> 
-				  erlv8_script:add_handler(Script,erlv8_capturer,[fun (X) -> 
-																		  gen_fsm:send_event(Self,{result, X})
-																  end]),
-				  erlv8_script:run(Script)
-		  end),
-	{next_state, eval, State#state{ expr = Expr, script = Script }}.
+	erlv8_script:source(Script, Expr),
+	spawn(fun () -> erlv8_script:run(Script) end),
+	{next_state, eval, State#state{ expr = Expr }}.
 
-eval({result, X}, #state{ script = Script, im = IM } = State) ->
+eval({result, X}, #state{ im = IM } = State) ->
 	IM:print(X),
 	gen_fsm:send_event(self(),read),
-	Global = erlv8_script:global(Script),
-	erlv8_script:stop(Script),
-	{next_state, ready, State#state { global = Global, script = undefined }}.
+	{next_state, ready, State}.
 
 
 %%--------------------------------------------------------------------
@@ -171,7 +168,9 @@ handle_info(_Info, StateName, State) ->
 %% @spec terminate(Reason, StateName, State) -> void()
 %% @end
 %%--------------------------------------------------------------------
-terminate(_Reason, _StateName, _State) ->
+terminate(_Reason, _StateName, #state{ script = Script } = _State) ->
+	unlink(Script),
+	erlv8_script:stop(Script),
 	ok.
 
 %%--------------------------------------------------------------------
