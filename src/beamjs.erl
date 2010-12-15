@@ -35,6 +35,14 @@ args(Script,Resolution,["-toolbar"|Rest]) ->
 	args(Script,Resolution,Rest);
 args(Script,_Resolution,["-norepl"|Rest]) ->
 	args(Script,norepl,Rest);
+args(Script,Resolution,["-mod",Alias,Mod|Rest]) ->
+	case application:get_env(beamjs,available_mods) of
+		{ok, Mods} ->
+			application:set_env(beamjs,available_mods,[{Alias,list_to_atom(Mod)}|Mods]);
+		undefined ->
+			skip
+	end,
+	args(Script,Resolution,Rest);
 args(Script,Resolution,[File|Rest]) when is_list(File) ->
 	{ok, B} = file:read_file(File),
 	S = binary_to_list(B),
