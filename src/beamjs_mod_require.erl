@@ -5,7 +5,21 @@
 exports() ->
 	fun require/3.
 
-require(_Script, #erlv8_fun_invocation{} = _Invocation, Filename) ->
+require(Script, #erlv8_fun_invocation{} = Invocation, Filename) ->
+	case application:get_env(beamjs,available_mods) of
+		{ok, Mods} ->
+			io:format("Mods = ~p File = ~p~n",[Mods,Filename]),
+			case proplists:get_value(Filename,Mods) of
+				undefined ->
+					require_file(Script, Invocation, Filename);
+				Mod -> %% it is an Erlang-implemented module
+					Mod:exports()
+			end;
+		_ ->
+			require_file(Script, Invocation, Filename)
+	end.
+
+require_file(_Script, #erlv8_fun_invocation{} = _Invocation, Filename) ->
 	{ok, B} = file:read_file(Filename),
 	S = binary_to_list(B),
 	{ok, NewScript} = erlv8:new_script(S),	
