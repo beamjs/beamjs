@@ -17,6 +17,11 @@
 		   {exports, beamjs_mod_exports},
 		   {require, beamjs_mod_require}
 		  ]
+		 },
+		 {available_mods,
+		  [
+		   {"sys", beamjs_mod_sys}
+		  ]
 		 }
 		]}
  ]}.
