@@ -51,15 +51,17 @@ start_link(Prompt,InteractionModule,Script) ->
 %%--------------------------------------------------------------------
 init([Prompt, InteractionModule, undefined]) ->
 	{ok, Script} = erlv8:new_script(""),
-	init([Prompt, InteractionModule, Script]);
+	init([Prompt, InteractionModule, Script, ready]);
 init([Prompt, InteractionModule, Script]) ->
+	init([Prompt, InteractionModule, Script, ready]);
+init([Prompt, InteractionModule, Script, NextState]) ->
 	link(Script),
 	Self = self(),
 	erlv8_script:add_handler(Script,erlv8_capturer,[fun (X) -> 
 															gen_fsm:send_event(Self,{result, X})
 													end]),
 	gen_fsm:send_event(self(),read),
-	{ok, ready, #state{ prompt = Prompt, im = InteractionModule, script = Script}}.
+	{ok, NextState, #state{ prompt = Prompt, im = InteractionModule, script = Script}}.
 
 %%--------------------------------------------------------------------
 %% @private
@@ -80,8 +82,14 @@ ready(read, #state{ prompt = Prompt, im = IM, script = Script } = State) ->
 	Expr = IM:read(Prompt),
 	erlv8_script:source(Script, Expr),
 	spawn(fun () -> erlv8_script:run(Script) end),
-	{next_state, eval, State#state{ expr = Expr }}.
+	{next_state, eval, State#state{ expr = Expr }};
 
+ready({result,_}=_Evt,State) ->
+	{next_state, ready, State}.
+	
+
+eval(read, State) ->
+	{next_state, eval, State};
 eval({result, Result}, #state{ im = IM, script = Script } = State) ->
 	IM:print(Script,Result),
 	gen_fsm:send_event(self(),read),
