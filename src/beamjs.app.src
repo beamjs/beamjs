@@ -9,12 +9,13 @@
                   stdlib
                  ]},
   {modules, [beamjs, beamjs_app, beamjs_sup, beamjs_repl_sup, beamjs_repl, beamjs_repl_console,
-			 beamjs_mod_exports]},
+			 beamjs_mod_exports, beamjs_mod_require]},
   {mod, { beamjs_app, []}},
   {env, [
 		 {default_mods,
 		  [
-		   {exports, beamjs_mod_exports}
+		   {exports, beamjs_mod_exports},
+		   {require, beamjs_mod_require}
 		  ]
 		 }
 		]}
