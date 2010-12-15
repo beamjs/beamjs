@@ -1,13 +1,13 @@
 -module(beamjs_repl_console).
 
--export([read/1,print/1]).
+-export([read/1,print/2]).
 
 read(Prompt) ->
 	io:get_line(Prompt).
 
-print({compilation_failed, Error}) ->
-	io:format("    Compilation failed: ~p~n",[Error]); 
-print({finished, Result}) ->
-	io:format("~p~n",[Result]);
-print({exception, Exception}) ->
-	io:format("    Exception: ~p~n",[Exception]).
+print(Script,{compilation_failed, Error}) ->
+	io:format("~s~n",[beamjs_js_formatter:format_exception(Script,Error)]); 
+print(Script,{finished, Result}) ->
+	io:format("~s~n",[beamjs_js_formatter:format(Script,Result)]);
+print(Script,{exception, Exception}) ->
+	io:format("~s~n",[beamjs_js_formatter:format_exception(Script,Exception)]).

@@ -82,8 +82,8 @@ ready(read, #state{ prompt = Prompt, im = IM, script = Script } = State) ->
 	spawn(fun () -> erlv8_script:run(Script) end),
 	{next_state, eval, State#state{ expr = Expr }}.
 
-eval({result, X}, #state{ im = IM } = State) ->
-	IM:print(X),
+eval({result, Result}, #state{ im = IM, script = Script } = State) ->
+	IM:print(Script,Result),
 	gen_fsm:send_event(self(),read),
 	{next_state, ready, State}.
 
