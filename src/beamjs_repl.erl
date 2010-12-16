@@ -6,7 +6,7 @@
 -export([start_link/2, start_link/3]).
 
 %% gen_fsm callbacks
--export([init/1, ready/2, eval/2, handle_event/3,
+-export([init/1, ready/2, print/2, handle_event/3,
 		 handle_sync_event/4, handle_info/3, terminate/3, code_change/4]).
 
 -define(SERVER, ?MODULE).
@@ -50,16 +50,12 @@ start_link(Prompt,InteractionModule,Script) ->
 %% @end
 %%--------------------------------------------------------------------
 init([Prompt, InteractionModule, undefined]) ->
-	{ok, Script} = erlv8:new_script(""),
+	{ok, Script} = erlv8_script:new(),
 	init([Prompt, InteractionModule, Script, ready]);
 init([Prompt, InteractionModule, Script]) ->
 	init([Prompt, InteractionModule, Script, ready]);
 init([Prompt, InteractionModule, Script, NextState]) ->
 	link(Script),
-	Self = self(),
-	erlv8_script:add_handler(Script,erlv8_capturer,[fun (X) -> 
-															gen_fsm:send_event(Self,{result, X})
-													end]),
 	gen_fsm:send_event(self(),read),
 	{ok, NextState, #state{ prompt = Prompt, im = InteractionModule, script = Script}}.
 
@@ -80,17 +76,17 @@ init([Prompt, InteractionModule, Script, NextState]) ->
 %%--------------------------------------------------------------------
 ready(read, #state{ prompt = Prompt, im = IM, script = Script } = State) ->
 	Expr = IM:read(Prompt),
-	erlv8_script:source(Script, Expr),
-	spawn(fun () -> erlv8_script:run(Script) end),
-	{next_state, eval, State#state{ expr = Expr }};
+	Self = self(),
+	spawn(fun () -> gen_fsm:send_event(Self, {result, erlv8_script:run(Script, Expr)}) end),
+	{next_state, print, State#state{ expr = Expr }}.
 
-ready({result,_}=_Evt,State) ->
-	{next_state, ready, State}.
+%% ready({result,_}=_Evt,State) ->
+%% 	{next_state, ready, State}.
 	
 
-eval(read, State) ->
-	{next_state, eval, State};
-eval({result, Result}, #state{ im = IM, script = Script } = State) ->
+%% eval(read, State) ->
+%% 	{next_state, eval, State};
+print({result, Result}, #state{ im = IM, script = Script } = State) ->
 	IM:print(Script,Result),
 	gen_fsm:send_event(self(),read),
 	{next_state, ready, State}.

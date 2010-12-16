@@ -7,7 +7,7 @@ read(Prompt) ->
 
 print(Script,{compilation_failed, Error}) ->
 	io:format("~s~n",[beamjs_js_formatter:format_exception(Script,Error)]); 
-print(Script,{finished, Result}) ->
+print(Script,{ok, Result}) ->
 	io:format("~s~n",[beamjs_js_formatter:format(Script,Result)]);
 print(Script,{exception, Exception}) ->
 	io:format("~s~n",[beamjs_js_formatter:format_exception(Script,Exception)]).

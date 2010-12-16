@@ -21,15 +21,10 @@ require(Script, #erlv8_fun_invocation{} = Invocation, Filename) ->
 require_file(_Script, #erlv8_fun_invocation{} = _Invocation, Filename) ->
 	{ok, B} = file:read_file(Filename),
 	S = binary_to_list(B),
-	{ok, NewScript} = erlv8:new_script(S),	
+	{ok, NewScript} = erlv8_script:new(),	
 	beamjs:load_default_mods(NewScript),
-	Self = self(),
-	spawn(fun () ->
-				  erlv8_script:add_handler(NewScript,erlv8_capturer,[fun (X) -> Self ! X end]),
-				  erlv8_script:run(NewScript)
-		  end),
-	receive 
-		{finished, _Result} ->
+	case erlv8_script:run(NewScript,S) of
+		{ok, _Result} ->
 			proplists:get_value("exports",erlv8_script:global(NewScript),[]);
 		_Other ->
 			error(not_implemented)

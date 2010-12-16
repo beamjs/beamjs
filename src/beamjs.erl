@@ -46,8 +46,7 @@ args(Script,Resolution,["-mod",Alias,Mod|Rest]) ->
 args(Script,Resolution,[File|Rest]) when is_list(File) ->
 	{ok, B} = file:read_file(File),
 	S = binary_to_list(B),
-	erlv8_script:source(Script,S),
-	erlv8_script:run(Script),
+	erlv8_script:run(Script, S),
 	args(Script,Resolution,Rest).
 	
 main(Args) ->
@@ -57,7 +56,7 @@ main(Args) ->
 	end,
 	erlv8:start(),
 	start(),
-	{ok, Script} = erlv8:new_script(""),
+	{ok, Script} = erlv8_script:new(),
 	load_default_mods(Script),
 	case args(Script,undefined,Args) of
 		norepl ->
