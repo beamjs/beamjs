@@ -28,7 +28,7 @@ require_file(#erlv8_fun_invocation{} = Invocation, Filename) ->
 								 true
 						 end,
 						 lists:map(fun (Path) ->
-										   case file:read_file(filename:join([Path, Filename])) of
+										   case file:read_file(filename:join([Path, Filename ++ ".js"])) of
 											   {error, _} ->
 												   not_found;
 											   {ok, B} ->
