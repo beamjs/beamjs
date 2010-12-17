@@ -4,8 +4,7 @@
 
 exports() ->
 	{ok, Cwd} = file:get_cwd(),
-	erlv8_funobj:new(fun require/2,
-					 [{"paths", [Cwd]}]).
+	erlv8_fun:new(fun require/2,erlv8_object:new([{"paths", [Cwd]}])).
 
 require(#erlv8_fun_invocation{} = Invocation, [Filename]) ->
 	case application:get_env(beamjs,available_mods) of
@@ -21,7 +20,9 @@ require(#erlv8_fun_invocation{} = Invocation, [Filename]) ->
 	end.
 
 require_file(#erlv8_fun_invocation{} = Invocation, Filename) ->
-	Require = proplists:get_value("require", Invocation:global()),
+	Global = Invocation:global(),
+	Require = Global:get_value("require"),
+	RequireObject = Require:object(),
 	Sources = lists:filter(fun (not_found) -> 
 								 false;
 							 (_) ->
@@ -35,16 +36,17 @@ require_file(#erlv8_fun_invocation{} = Invocation, Filename) ->
 												   binary_to_list(B)
 										   end
 								   end,
-								   proplists:get_value("paths",Require:object(),"."))),
+								   RequireObject:get_value("paths","."))),
 	case Sources of 
 		[] ->
 			{throw, {error, lists:flatten(io_lib:format("Cannot find module '~s'",[Filename])) }};
 		[S|_] ->
 			{ok, NewScript} = erlv8_script:new(),	
 			beamjs:load_default_mods(NewScript),
+			Global = erlv8_script:global(NewScript),
 			case erlv8_script:run(NewScript,S) of
 				{ok, _Result} ->
-					proplists:get_value("exports",erlv8_script:global(NewScript),[]);
+					Global:get_value("exports",[]);
 				_Other ->
 					error(not_implemented)
 			end

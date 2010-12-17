@@ -3,7 +3,7 @@
 -include_lib("erlv8/include/erlv8.hrl").
 
 exports() ->
-	[{"start", fun start/2}].
+	erlv8_object:new([{"start", fun start/2}]).
 
 start(#erlv8_fun_invocation{} = Invocation, []) ->
 	start(Invocation,["beam.js> "]);
