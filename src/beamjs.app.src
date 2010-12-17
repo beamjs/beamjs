@@ -15,7 +15,8 @@
 		 {default_mods,
 		  [
 		   {exports, beamjs_mod_exports},
-		   {require, beamjs_mod_require}
+		   {require, beamjs_mod_require},
+		   {console, beamjs_mod_console}		   
 		  ]
 		 },
 		 {available_mods,
