@@ -22,19 +22,24 @@ require(#erlv8_fun_invocation{} = Invocation, [Filename]) ->
 
 require_file(#erlv8_fun_invocation{} = Invocation, Filename) ->
 	Require = proplists:get_value("require", Invocation:global()),
-	[S|_] = lists:map(fun (Path) ->
-									  case file:read_file(filename:join([Path, Filename])) of
-										  {error, _} ->
-											  not_found;
-										  {ok, B} ->
-											  binary_to_list(B)
-									  end
-							  end,
-							  proplists:get_value("paths",Require:object(),".")),
-	case S of 
-		undefined ->
-			undefined;
-		_ ->
+	Sources = lists:filter(fun (not_found) -> 
+								 false;
+							 (_) ->
+								 true
+						 end,
+						 lists:map(fun (Path) ->
+										   case file:read_file(filename:join([Path, Filename])) of
+											   {error, _} ->
+												   not_found;
+											   {ok, B} ->
+												   binary_to_list(B)
+										   end
+								   end,
+								   proplists:get_value("paths",Require:object(),"."))),
+	case Sources of 
+		[] ->
+			{throw, {error, lists:flatten(io_lib:format("Cannot find module '~s'",[Filename])) }};
+		[S|_] ->
 			{ok, NewScript} = erlv8_script:new(),	
 			beamjs:load_default_mods(NewScript),
 			case erlv8_script:run(NewScript,S) of
