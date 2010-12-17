@@ -43,6 +43,9 @@ args(Script,Resolution,["-mod",Alias,Mod|Rest]) ->
 			skip
 	end,
 	args(Script,Resolution,Rest);
+args(Script,Resolution,["-default_mod",Alias,Mod|Rest]) ->
+	erlv8_script:register(Script,Alias,list_to_atom(Mod)),
+	args(Script,Resolution,Rest);
 args(Script,Resolution,[File|Rest]) when is_list(File) ->
 	{ok, B} = file:read_file(File),
 	S = binary_to_list(B),
