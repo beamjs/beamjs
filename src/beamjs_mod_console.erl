@@ -3,11 +3,11 @@
 -include_lib("erlv8/include/erlv8.hrl").
 
 exports() ->
-	[{"log", fun log/3},{"info", fun log/3},{"warn", fun log/3},{"error", fun log/3},{"dir", fun log/3}
+	[{"log", fun log/2},{"info", fun log/2},{"warn", fun log/2},{"error", fun log/2},{"dir", fun log/2}
 	 %% TODO: time, timeEnd, trace, assert
 	].
 
-log(Script, #erlv8_fun_invocation{} = _Invocation, [Expr]) ->
+log(#erlv8_fun_invocation{ server = Script} = _Invocation, [Expr]) ->
 	io:format("~s~n",[beamjs_js_formatter:format(Script,Expr)]),
 	undefined.
 

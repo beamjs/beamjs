@@ -4,23 +4,23 @@
 
 exports() ->
 	{ok, Cwd} = file:get_cwd(),
-	erlv8_funobj:new(fun require/3,
+	erlv8_funobj:new(fun require/2,
 					 [{"paths", [Cwd]}]).
 
-require(Script, #erlv8_fun_invocation{} = Invocation, [Filename]) ->
+require(#erlv8_fun_invocation{} = Invocation, [Filename]) ->
 	case application:get_env(beamjs,available_mods) of
 		{ok, Mods} ->
 			case proplists:get_value(Filename,Mods) of
 				undefined ->
-					require_file(Script, Invocation, Filename);
+					require_file(Invocation, Filename);
 				Mod -> %% it is an Erlang-implemented module
 					Mod:exports()
 			end;
 		_ ->
-			require_file(Script, Invocation, Filename)
+			require_file(Invocation, Filename)
 	end.
 
-require_file(_Script, #erlv8_fun_invocation{} = Invocation, Filename) ->
+require_file(#erlv8_fun_invocation{} = Invocation, Filename) ->
 	Require = proplists:get_value("require", Invocation:global()),
 	[S|_] = lists:map(fun (Path) ->
 									  case file:read_file(filename:join([Path, Filename])) of
