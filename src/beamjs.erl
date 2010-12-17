@@ -62,11 +62,7 @@ main(Args) ->
 		norepl ->
 			ok;
 		_ ->
-			supervisor:start_child(beamjs_repl_sup,["beam.js> ", beamjs_repl_console, Script]),
-			receive 
-				_ ->
-					ok
-			end
+			erlv8_script:run(Script, "require('repl').start()")
 	end.
 
 	
