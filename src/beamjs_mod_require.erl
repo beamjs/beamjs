@@ -5,7 +5,7 @@
 exports() ->
 	fun require/3.
 
-require(Script, #erlv8_fun_invocation{} = Invocation, Filename) ->
+require(Script, #erlv8_fun_invocation{} = Invocation, [Filename]) ->
 	case application:get_env(beamjs,available_mods) of
 		{ok, Mods} ->
 			case proplists:get_value(Filename,Mods) of
