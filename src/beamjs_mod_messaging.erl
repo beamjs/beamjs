@@ -1,5 +1,5 @@
 -module(beamjs_mod_messaging).
--export([exports/0,init/1]).
+-export([exports/1,init/1]).
 -behaviour(erlv8_module).
 -include_lib("erlv8/include/erlv8.hrl").
 %-behaviour(gen_server2).
@@ -13,7 +13,7 @@ init({gen_server2,This, Emitter}) ->
 init(_VM) ->
 	ok.
 
-exports() ->
+exports(_VM) ->
  	?V8Obj([{"Mailbox", fun new_mailbox/2}]).
 
 prototype() ->

@@ -2,7 +2,7 @@
 
 -behaviour(erlv8_module).
 
--export([exports/0, init/1]).
+-export([exports/1, init/1]).
 
 % for internal purposes
 -export([prototype_EventEmitter/0]).
@@ -16,11 +16,12 @@
 
 init({gen_event, Type, Event, Listener}) -> %% gen_event
 	{ok, {Type, Event, Listener}};
+
 init(_VM) -> %% erlv8_module
 	ok.
 
 	   
-exports() ->
+exports(_VM) ->
 	?V8Obj([{"EventEmitter", fun new_event_emitter/2}]).
 
 prototype_EventEmitter() ->
@@ -33,7 +34,7 @@ prototype_EventEmitter() ->
 			{"removeAllListeners", fun remove_all_listeners/2}]).
 
 new_event_emitter(#erlv8_fun_invocation{ this = This },[]) ->
-	This:set_prototype(prototype_EventEmitter()),
+	This:set_prototype(prototype_EventEmitter()), %% FIXME: not the best place for it
 	{ok, Pid} = gen_event:start(), %% not sure if we want start or start_link here
 	This:set_hidden_value("eventManager", Pid),
 	This:set_hidden_value("_listeners",?V8Obj([])),

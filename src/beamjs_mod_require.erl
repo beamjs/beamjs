@@ -1,23 +1,23 @@
 -module(beamjs_mod_require).
--export([exports/0,init/1]).
+-export([exports/1,init/1]).
 -behaviour(erlv8_module).
 -include_lib("erlv8/include/erlv8.hrl").
 
 init(_VM) ->
 	ok.
 
-exports() ->
+exports(_VM) ->
 	{ok, Cwd} = file:get_cwd(),
 	erlv8_fun:new(fun require/2,erlv8_object:new([{"paths", [Cwd]}])).
 
-require(#erlv8_fun_invocation{} = Invocation, [Filename]) ->
+require(#erlv8_fun_invocation{ vm = VM } = Invocation, [Filename]) ->
 	case application:get_env(beamjs,available_mods) of
 		{ok, Mods} ->
 			case proplists:get_value(Filename,Mods) of
 				undefined ->
 					require_file(Invocation, Filename);
 				Mod -> %% it is an Erlang-implemented module
-					Mod:exports()
+					Mod:exports(VM)
 			end;
 		_ ->
 			require_file(Invocation, Filename)
