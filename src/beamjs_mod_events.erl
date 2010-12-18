@@ -1,7 +1,12 @@
 -module(beamjs_mod_events).
 
 -behaviour(erlv8_module).
+
 -export([exports/0, init/1]).
+
+% for internal purposes
+-export([prototype_EventEmitter/0]).
+
 
 %-behaviour(gen_event). % commented this out just because of init/1 conflict warning
 -export([handle_event/2, terminate/2, handle_call/2, handle_info/2, code_change/3]).
@@ -18,7 +23,7 @@ init(_VM) -> %% erlv8_module
 exports() ->
 	?V8Obj([{"EventEmitter", fun new_event_emitter/2}]).
 
-prototype() ->
+prototype_EventEmitter() ->
 	?V8Obj([{"emit", fun emit/2},
 			{"addListener", fun add_listener/2},
 			{"on", fun add_listener/2},
@@ -28,7 +33,7 @@ prototype() ->
 			{"removeAllListeners", fun remove_all_listeners/2}]).
 
 new_event_emitter(#erlv8_fun_invocation{ this = This },[]) ->
-	This:set_prototype(prototype()),
+	This:set_prototype(prototype_EventEmitter()),
 	{ok, Pid} = gen_event:start(), %% not sure if we want start or start_link here
 	This:set_hidden_value("eventManager", Pid),
 	This:set_hidden_value("_listeners",?V8Obj([])),

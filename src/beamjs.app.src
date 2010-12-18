@@ -24,7 +24,8 @@
 		   {"sys", beamjs_mod_sys},
 		   {"util", beamjs_mod_sys}, %% compatibility with bleeding edge node.js
 		   {"repl", beamjs_mod_repl},
-		   {"events", beamjs_mod_events}
+		   {"events", beamjs_mod_events},
+		   {"messaging", beamjs_mod_messaging}
 		  ]
 		 }
 		]}
