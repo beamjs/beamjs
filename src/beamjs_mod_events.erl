@@ -57,11 +57,11 @@ once(#erlv8_fun_invocation{}=I,Args) ->
 listeners(#erlv8_fun_invocation{}, []) ->
 	{throw, {error, "Event name should be specified"}};
 
-listeners(#erlv8_fun_invocation{ this = This}, [Event]) -> %% half: the array we return can not be manipulated
+listeners(#erlv8_fun_invocation{ this = This}, [Event]) -> %% half broken: the array we return can not be manipulated
 	Listeners = This:get_hidden_value("_listeners"),
 	Listeners:get_value(Event).
 
-remove_listener(#erlv8_fun_invocation{ this = This}, [Listener]) -> %% broken
+remove_listener(#erlv8_fun_invocation{ this = This}, [Listener]) -> 
 	Pid = This:get_hidden_value("eventManager"),
 	gen_event:notify(Pid,{remove_listener, Listener}),
 	undefined.	
@@ -84,9 +84,13 @@ handle_event({event, Event, Args}, {once, Event, Listener}) ->
 handle_event({remove_all, Event}, {_, Event, _}) ->
 	remove_handler;
 
-handle_event({remove_listener, Listener}, {_, _, Listener}) ->
-	remove_handler;
-
+handle_event({remove_listener, ListenerFun}, {_, _, Listener}=State) ->
+	case ListenerFun:equals(Listener) of
+		true ->
+			remove_handler;
+		false ->
+			{ok, State}
+	end;
 
 handle_event(_, State) ->
 	{ok, State}.
