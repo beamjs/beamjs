@@ -1,6 +1,10 @@
 -module(beamjs_mod_require).
--export([exports/0]).
+-export([exports/0,init/1]).
+-behaviour(erlv8_module).
 -include_lib("erlv8/include/erlv8.hrl").
+
+init(_VM) ->
+	ok.
 
 exports() ->
 	{ok, Cwd} = file:get_cwd(),

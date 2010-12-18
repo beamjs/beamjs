@@ -1,6 +1,10 @@
 -module(beamjs_mod_console).
--export([exports/0]).
+-export([exports/0,init/1]).
+-behaviour(erlv8_module).
 -include_lib("erlv8/include/erlv8.hrl").
+
+init(_VM) ->
+	ok.
 
 exports() ->
 	erlv8_object:new([{"log", fun log/2},{"info", fun log/2},{"warn", fun log/2},{"error", fun log/2},{"dir", fun log/2}]).
