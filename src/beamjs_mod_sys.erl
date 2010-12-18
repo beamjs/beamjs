@@ -3,9 +3,9 @@
 -include_lib("erlv8/include/erlv8.hrl").
 
 exports() ->
-	erlv8_object:new([{"print", fun print/3}]).
+	erlv8_object:new([{"print", fun print/2}]).
 
-print(VM, #erlv8_fun_invocation{} = _Invocation, [Expr]) ->
+print(#erlv8_fun_invocation{ vm = VM} = _Invocation, [Expr]) ->
 	io:format("~s",[erlv8_vm:to_detail_string(VM,Expr)]),
 	undefined.
 
