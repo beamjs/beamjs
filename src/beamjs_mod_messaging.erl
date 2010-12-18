@@ -14,14 +14,16 @@ init(_VM) ->
 	ok.
 
 exports(_VM) ->
- 	?V8Obj([{"Mailbox", fun new_mailbox/2},
+ 	?V8Obj([{"Mailbox", erlv8_fun:new(fun new_mailbox/2,
+									  ?V8Obj([{"Global", fun new_global_mailbox/2}]))},
 			{"Node", ?V8Obj([{this, node()},
 							 {ping, fun nodes_ping/2},
 							 {nodes, fun nodes_nodes/2}])}]).
 			
 
 prototype() ->
-	?V8Obj([{"send", fun send/2}]).
+	?V8Obj([{"send", erlv8_fun:new(fun send/2,
+								   ?V8Obj([{"global",fun send_global/2}]))}]).
 
 
 new_mailbox1(#erlv8_fun_invocation{ this = This }=I) ->
@@ -52,12 +54,25 @@ new_mailbox(#erlv8_fun_invocation{ this = This }=I,[]) ->
 	This:set_hidden_value("mailboxServer", Pid),
 	undefined.
 
+new_global_mailbox(#erlv8_fun_invocation{ this = This }=I,[Name]) ->
+	new_mailbox1(I),
+	Emitter = This:get_value("emit"),
+	{ok, Pid} = gen_server2:start({global, Name}, ?MODULE, {gen_server2, This, Emitter}, []), %% not sure if we want start or start_link here
+	This:set_hidden_value("mailboxServer", Pid),
+	undefined.
+
 send(#erlv8_fun_invocation{},[Name, Data]) when is_list(Name) ->
 	list_to_existing_atom(Name) ! Data;
 
 send(#erlv8_fun_invocation{},[{erlv8_object, _}=O,Data])  ->
 	Pid = O:get_hidden_value("mailboxServer"),
 	Pid ! Data.
+
+send_global(#erlv8_fun_invocation{},[Name, Data]) ->
+	global:sync(), %% FIXME: remove this when global API will be exposed
+	global:send(Name,Data),
+	Data.
+
 
 nodes_ping(#erlv8_fun_invocation{},[Node]) ->
 	case net_adm:ping(list_to_atom(Node)) of
