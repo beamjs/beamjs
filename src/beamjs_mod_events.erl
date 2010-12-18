@@ -57,7 +57,7 @@ once(#erlv8_fun_invocation{}=I,Args) ->
 listeners(#erlv8_fun_invocation{}, []) ->
 	{throw, {error, "Event name should be specified"}};
 
-listeners(#erlv8_fun_invocation{ this = This}, [Event]) -> %% half broken: the array we return can not be manipulated
+listeners(#erlv8_fun_invocation{ this = This}, [Event]) ->
 	Listeners = This:get_hidden_value("_listeners"),
 	Listeners:get_value(Event).
 
