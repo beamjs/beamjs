@@ -22,6 +22,7 @@
 		 {available_mods,
 		  [
 		   {"sys", beamjs_mod_sys},
+		   {"util", beamjs_mod_sys}, %% compatibility with bleeding edge node.js
 		   {"repl", beamjs_mod_repl}
 		  ]
 		 }
