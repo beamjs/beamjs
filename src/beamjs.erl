@@ -8,11 +8,11 @@ start() ->
 stop() ->
 	application:stop(beamjs).
 
-load_default_mods(Script) ->
+load_default_mods(VM) ->
 	case application:get_env(beamjs,default_mods) of
 		{ok, DefaultMods} ->
 			lists:foreach(fun({Name,Mod}) ->
-								  erlv8_script:register(Script,Name,Mod)
+								  erlv8_vm:register(VM,Name,Mod)
 						  end, DefaultMods);
 		undefined->
 			skip
@@ -21,36 +21,36 @@ load_default_mods(Script) ->
 
 args(_,Resolution,[]) ->
 	Resolution;
-args(Script,Resolution,["-pa",Path|Rest]) ->
+args(VM,Resolution,["-pa",Path|Rest]) ->
 	code:add_patha(Path),
-	args(Script,Resolution,Rest);
-args(Script,Resolution,["-sname",Node|Rest]) ->
+	args(VM,Resolution,Rest);
+args(VM,Resolution,["-sname",Node|Rest]) ->
 	net_kernel:start([list_to_atom(Node),shortnames]),
-	args(Script,Resolution,Rest);
-args(Script,Resolution,["-name",Node|Rest]) ->
+	args(VM,Resolution,Rest);
+args(VM,Resolution,["-name",Node|Rest]) ->
 	net_kernel:start([list_to_atom(Node),longnames]),
-	args(Script,Resolution,Rest);
-args(Script,Resolution,["-toolbar"|Rest]) ->
+	args(VM,Resolution,Rest);
+args(VM,Resolution,["-toolbar"|Rest]) ->
 	toolbar:start(),
-	args(Script,Resolution,Rest);
-args(Script,_Resolution,["-norepl"|Rest]) ->
-	args(Script,norepl,Rest);
-args(Script,Resolution,["-mod",Alias,Mod|Rest]) ->
+	args(VM,Resolution,Rest);
+args(VM,_Resolution,["-norepl"|Rest]) ->
+	args(VM,norepl,Rest);
+args(VM,Resolution,["-mod",Alias,Mod|Rest]) ->
 	case application:get_env(beamjs,available_mods) of
 		{ok, Mods} ->
 			application:set_env(beamjs,available_mods,[{Alias,list_to_atom(Mod)}|Mods]);
 		undefined ->
 			skip
 	end,
-	args(Script,Resolution,Rest);
-args(Script,Resolution,["-default_mod",Alias,Mod|Rest]) ->
-	erlv8_script:register(Script,Alias,list_to_atom(Mod)),
-	args(Script,Resolution,Rest);
-args(Script,Resolution,[File|Rest]) when is_list(File) ->
+	args(VM,Resolution,Rest);
+args(VM,Resolution,["-default_mod",Alias,Mod|Rest]) ->
+	erlv8_vm:register(VM,Alias,list_to_atom(Mod)),
+	args(VM,Resolution,Rest);
+args(VM,Resolution,[File|Rest]) when is_list(File) ->
 	{ok, B} = file:read_file(File),
 	S = binary_to_list(B),
-	erlv8_script:run(Script, S),
-	args(Script,Resolution,Rest).
+	erlv8_vm:run(VM, S),
+	args(VM,Resolution,Rest).
 	
 main(Args) ->
 	case os:getenv("ERLV8_SO_PATH") of
@@ -59,13 +59,13 @@ main(Args) ->
 	end,
 	erlv8:start(),
 	start(),
-	{ok, Script} = erlv8_script:new(),
-	load_default_mods(Script),
-	case args(Script,undefined,Args) of
+	{ok, VM} = erlv8_vm:new(),
+	load_default_mods(VM),
+	case args(VM,undefined,Args) of
 		norepl ->
 			ok;
 		_ ->
-			erlv8_script:run(Script, "require('repl').start()")
+			erlv8_vm:run(VM, "require('repl').start()")
 	end.
 
 	

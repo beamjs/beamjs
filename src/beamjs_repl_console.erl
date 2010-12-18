@@ -5,9 +5,9 @@
 read(Prompt) ->
 	io:get_line(Prompt).
 
-print(Script,{compilation_failed, Error}) ->
-	io:format("~s~n",[beamjs_js_formatter:format_exception(Script,Error)]); 
-print(Script,{ok, Result}) ->
-	io:format("~s~n",[beamjs_js_formatter:format(Script,Result)]);
-print(Script,{exception, Exception}) ->
-	io:format("~s~n",[beamjs_js_formatter:format_exception(Script,Exception)]).
+print(VM,{compilation_failed, Error}) ->
+	io:format("~s~n",[beamjs_js_formatter:format_exception(VM,Error)]); 
+print(VM,{ok, Result}) ->
+	io:format("~s~n",[beamjs_js_formatter:format(VM,Result)]);
+print(VM,{exception, Exception}) ->
+	io:format("~s~n",[beamjs_js_formatter:format_exception(VM,Exception)]).

@@ -41,10 +41,10 @@ require_file(#erlv8_fun_invocation{} = Invocation, Filename) ->
 		[] ->
 			{throw, {error, lists:flatten(io_lib:format("Cannot find module '~s'",[Filename])) }};
 		[S|_] ->
-			{ok, NewScript} = erlv8_script:new(),	
-			beamjs:load_default_mods(NewScript),
-			Global = erlv8_script:global(NewScript),
-			case erlv8_script:run(NewScript,S) of
+			{ok, NewVM} = erlv8_vm:new(),	
+			beamjs:load_default_mods(NewVM),
+			Global = erlv8_vm:global(NewVM),
+			case erlv8_vm:run(NewVM,S) of
 				{ok, _Result} ->
 					Global:get_value("exports",[]);
 				_Other ->

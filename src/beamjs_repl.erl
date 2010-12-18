@@ -11,7 +11,7 @@
 
 -define(SERVER, ?MODULE).
 
--record(state, { prompt, im, expr = [], script }).
+-record(state, { prompt, im, expr = [], vm }).
 
 %%%===================================================================
 %%% API
@@ -29,8 +29,8 @@
 start_link(Prompt,InteractionModule) ->
 	start_link(Prompt, InteractionModule, undefined).
 
-start_link(Prompt,InteractionModule,Script) ->
-	gen_fsm:start_link(?MODULE, [Prompt,InteractionModule,Script], []).
+start_link(Prompt,InteractionModule,VM) ->
+	gen_fsm:start_link(?MODULE, [Prompt,InteractionModule,VM], []).
 
 %%%===================================================================
 %%% gen_fsm callbacks
@@ -50,14 +50,14 @@ start_link(Prompt,InteractionModule,Script) ->
 %% @end
 %%--------------------------------------------------------------------
 init([Prompt, InteractionModule, undefined]) ->
-	{ok, Script} = erlv8_script:new(),
-	init([Prompt, InteractionModule, Script, ready]);
-init([Prompt, InteractionModule, Script]) ->
-	init([Prompt, InteractionModule, Script, ready]);
-init([Prompt, InteractionModule, Script, NextState]) ->
-	link(Script),
+	{ok, VM} = erlv8_vm:new(),
+	init([Prompt, InteractionModule, VM, ready]);
+init([Prompt, InteractionModule, VM]) ->
+	init([Prompt, InteractionModule, VM, ready]);
+init([Prompt, InteractionModule, VM, NextState]) ->
+	link(VM),
 	gen_fsm:send_event(self(),read),
-	{ok, NextState, #state{ prompt = Prompt, im = InteractionModule, script = Script}}.
+	{ok, NextState, #state{ prompt = Prompt, im = InteractionModule, vm = VM}}.
 
 %%--------------------------------------------------------------------
 %% @private
@@ -74,10 +74,10 @@ init([Prompt, InteractionModule, Script, NextState]) ->
 %%                   {stop, Reason, NewState}
 %% @end
 %%--------------------------------------------------------------------
-ready(read, #state{ prompt = Prompt, im = IM, script = Script } = State) ->
+ready(read, #state{ prompt = Prompt, im = IM, vm = VM } = State) ->
 	Expr = IM:read(Prompt),
 	Self = self(),
-	spawn(fun () -> gen_fsm:send_event(Self, {result, erlv8_script:run(Script, Expr)}) end),
+	spawn(fun () -> gen_fsm:send_event(Self, {result, erlv8_vm:run(VM, Expr)}) end),
 	{next_state, print, State#state{ expr = Expr }}.
 
 %% ready({result,_}=_Evt,State) ->
@@ -86,8 +86,8 @@ ready(read, #state{ prompt = Prompt, im = IM, script = Script } = State) ->
 
 %% eval(read, State) ->
 %% 	{next_state, eval, State};
-print({result, Result}, #state{ im = IM, script = Script } = State) ->
-	IM:print(Script,Result),
+print({result, Result}, #state{ im = IM, vm = VM } = State) ->
+	IM:print(VM,Result),
 	gen_fsm:send_event(self(),read),
 	{next_state, ready, State}.
 
@@ -177,9 +177,9 @@ handle_info(_Info, StateName, State) ->
 %% @spec terminate(Reason, StateName, State) -> void()
 %% @end
 %%--------------------------------------------------------------------
-terminate(_Reason, _StateName, #state{ script = Script } = _State) ->
-	unlink(Script),
-	erlv8_script:stop(Script),
+terminate(_Reason, _StateName, #state{ vm = VM } = _State) ->
+	unlink(VM),
+	erlv8_vm:stop(VM),
 	ok.
 
 %%--------------------------------------------------------------------
