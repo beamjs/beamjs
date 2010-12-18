@@ -70,7 +70,7 @@ send(#erlv8_fun_invocation{},[{erlv8_object, _}=O,Data])  ->
 
 send_global(#erlv8_fun_invocation{},[Name, Data]) ->
 	global:sync(), %% FIXME: remove this when global API will be exposed
-	global:send(Name,Data),
+	global:send(Name,untaint(Data)),
 	Data.
 
 
@@ -103,3 +103,22 @@ terminate(_Reason, _State) ->
 
 code_change(_OldVsn, State, _Extra) ->
 	{ok, State}.
+
+
+%% private
+
+untaint({erlv8_object, _}=O) ->
+	{erlv8_object,lists:map(fun ({Key, Val}) ->
+									{Key, untaint(Val)}
+							end,O:proplist())};
+untaint({erlv8_fun, _}=F) -> %% broken
+	{erlv8_object,untaint(F:object())};
+untaint([H|T]) ->
+	[untaint(H)|untaint(T)];
+untaint([]) ->
+	[];
+untaint(Other) ->
+	Other.
+
+
+
