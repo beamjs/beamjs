@@ -9,8 +9,4 @@ After a couple of minutes (V8 takes quite some time to build), it should be over
 
         $ ./beamjs
 
-Or, if you want to have readline capabilities,
-
-        $ rlwrap ./beamjs
-
 Good luck!
