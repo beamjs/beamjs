@@ -1,6 +1,6 @@
 -module(beamjs).
 
--export([start/0,stop/0,main/1,load_default_mods/1]).
+-export([start/0,stop/0,main/0,load_default_mods/1]).
 
 start() ->
 	application:start(beamjs).
@@ -18,41 +18,56 @@ load_default_mods(VM) ->
 			skip
 	end.
 
+args(norepl) ->
+	case init:get_argument(norepl) of
+		{ok, _} ->
+			true;
+		_ ->
+			false
+	end;
+args(toolbar) ->
+	case init:get_argument(toolbar) of
+		{ok, _} ->
+			toolbar:start();
+		_ ->
+			false
+	end;
 
-args(_,Resolution,[]) ->
-	Resolution;
-args(VM,Resolution,["-pa",Path|Rest]) ->
-	code:add_patha(Path),
-	args(VM,Resolution,Rest);
-args(VM,Resolution,["-sname",Node|Rest]) ->
-	net_kernel:start([list_to_atom(Node),shortnames]),
-	args(VM,Resolution,Rest);
-args(VM,Resolution,["-name",Node|Rest]) ->
-	net_kernel:start([list_to_atom(Node),longnames]),
-	args(VM,Resolution,Rest);
-args(VM,Resolution,["-toolbar"|Rest]) ->
-	toolbar:start(),
-	args(VM,Resolution,Rest);
-args(VM,_Resolution,["-norepl"|Rest]) ->
-	args(VM,norepl,Rest);
-args(VM,Resolution,["-mod",Alias,Mod|Rest]) ->
-	case application:get_env(beamjs,available_mods) of
-		{ok, Mods} ->
-			application:set_env(beamjs,available_mods,[{Alias,list_to_atom(Mod)}|Mods]);
-		undefined ->
-			skip
-	end,
-	args(VM,Resolution,Rest);
-args(VM,Resolution,["-default_mod",Alias,Mod|Rest]) ->
-	erlv8_vm:register(VM,Alias,list_to_atom(Mod)),
-	args(VM,Resolution,Rest);
-args(VM,Resolution,[File|Rest]) when is_list(File) ->
-	{ok, B} = file:read_file(File),
-	S = binary_to_list(B),
-	erlv8_vm:run(VM, S),
-	args(VM,Resolution,Rest).
+args(mod) ->
+	case init:get_argument(mod) of
+		{ok, [Alias, Mod]} ->
+			case application:get_env(beamjs,available_mods) of
+				{ok, Mods} ->
+					application:set_env(beamjs,available_mods,[{Alias,list_to_atom(Mod)}|Mods]);
+				undefined ->
+					skip
+			end;
+		_ ->
+			false
+	end.
+
+args(VM,default_mod) ->
+	case init:get_argument(default_mod) of
+		{ok, [Alias, Mod]} ->
+			erlv8_vm:register(VM,Alias,list_to_atom(Mod));
+		_ ->
+			false
+	end;
+
+args(VM,load) ->
+	case init:get_argument(load) of
+		{ok, Files} ->
+			lists:foreach(fun (File) ->
+								  {ok, B} = file:read_file(File),
+								  S = binary_to_list(B),
+								  erlv8_vm:run(VM, S)
+						  end, Files);
+		_ ->
+			false
+	end.
+
 	
-main(Args) ->
+main() ->
 	case os:getenv("ERLV8_SO_PATH") of
 		false ->
 			os:putenv("ERLV8_SO_PATH","./deps/erlv8/priv")
@@ -61,11 +76,17 @@ main(Args) ->
 	start(),
 	{ok, VM} = erlv8_vm:new(),
 	load_default_mods(VM),
-	case args(VM,undefined,Args) of
-		norepl ->
+	NoRepl = args(norepl),
+	args(toolbar),
+	args(mod),
+	args(VM,default_mod),
+	args(VM,load),
+	case NoRepl of
+		true ->
 			ok;
-		_ ->
+		false ->
 			erlv8_vm:run(VM, "require('repl').start()")
-	end.
+	end,
+	erlang:halt().
 
 	
