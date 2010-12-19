@@ -14,19 +14,20 @@ init(_VM) ->
 	ok.
 
 exports(_VM) ->
- 	?V8Obj([{"Mailbox", erlv8_fun:new(fun new_mailbox/2,
-									  ?V8Obj([{"Global", fun new_global_mailbox/2}]))},
+ 	?V8Obj([{"Mailbox", fun new_mailbox/2},
 			{"Node", ?V8Obj([{this, node()},
 							 {ping, fun nodes_ping/2},
 							 {nodes, fun nodes_nodes/2}])}]).
 			
 
 prototype() ->
-	?V8Obj([{"send", fun send/2},
-			{"sendGlobal",fun send_global/2}]).
+	?V8Obj([{"send", fun send/2}]).
 
 
-new_mailbox1(#erlv8_fun_invocation{ this = This }=I) ->
+new_mailbox(#erlv8_fun_invocation{}=I,[]) ->
+	new_mailbox(I,[noname]);
+
+new_mailbox(#erlv8_fun_invocation{ this = This }=I,[OptsOrName]) ->
 	Global = I:global(),
 	Require = Global:get_value("require"),
 	EventsMod = Require:call(["events"]),
@@ -37,27 +38,24 @@ new_mailbox1(#erlv8_fun_invocation{ this = This }=I) ->
 	This:set_prototype(prototype()),
 	Prototype = This:get_prototype(),
 	Prototype:set_prototype(beamjs_mod_events:prototype_EventEmitter()), %% FIXME?
+	Emitter = This:get_value("emit"),
 
-	undefined.
-	
-new_mailbox(#erlv8_fun_invocation{ this = This }=I,[Name]) ->
-	new_mailbox1(I),
-	Emitter = This:get_value("emit"),
-	{ok, Pid} = gen_server2:start({local,list_to_atom(Name)}, ?MODULE, {gen_server2, This, Emitter}, []), %% not sure if we want start or start_link here
-	This:set_hidden_value("mailboxServer", Pid),
-	undefined;
-	
-new_mailbox(#erlv8_fun_invocation{ this = This }=I,[]) ->
-	new_mailbox1(I),
-	Emitter = This:get_value("emit"),
-	{ok, Pid} = gen_server2:start(?MODULE, {gen_server2, This, Emitter}, []), %% not sure if we want start or start_link here
-	This:set_hidden_value("mailboxServer", Pid),
-	undefined.
-
-new_global_mailbox(#erlv8_fun_invocation{ this = This }=I,[Name]) ->
-	new_mailbox1(I),
-	Emitter = This:get_value("emit"),
-	{ok, Pid} = gen_server2:start({global, Name}, ?MODULE, {gen_server2, This, Emitter}, []), %% not sure if we want start or start_link here
+	%% not sure if we want start or start_link here:
+	{ok, Pid} =
+	case OptsOrName of
+		noname ->
+			gen_server2:start(?MODULE, {gen_server2, This, Emitter}, []);
+		Name when is_list(Name) ->
+			gen_server2:start({local,list_to_atom(Name)}, ?MODULE, {gen_server2, This, Emitter}, []);
+		{erlv8_object,_} ->
+			case  OptsOrName:get_value("global") of
+				undefined ->
+					{throw, {error, "new Mailbox() accepts either zero arguments or a string, or {global: string}"}};
+				GlobalName ->
+					gen_server2:start({global,GlobalName}, ?MODULE, {gen_server2, This, Emitter}, [])
+			end
+	end,
+			
 	This:set_hidden_value("mailboxServer", Pid),
 	undefined.
 
@@ -65,13 +63,15 @@ send(#erlv8_fun_invocation{},[Name, Data]) when is_list(Name) ->
 	list_to_existing_atom(Name) ! Data;
 
 send(#erlv8_fun_invocation{},[{erlv8_object, _}=O,Data])  ->
-	Pid = O:get_hidden_value("mailboxServer"),
-	Pid ! Data.
-
-send_global(#erlv8_fun_invocation{},[Name, Data]) ->
-	global:sync(), %% FIXME: remove this when global API will be exposed
-	global:send(Name,untaint(Data)),
-	Data.
+	case O:get_value("global") of
+		Name when is_list(Name) ->
+			global:sync(), %% FIXME: remove this when global API will be exposed
+			global:send(Name,untaint(Data)),
+			Data;
+		_ ->
+			Pid = O:get_hidden_value("mailboxServer"),
+			Pid ! Data
+	end.
 
 
 nodes_ping(#erlv8_fun_invocation{},[Node]) ->
