@@ -16,7 +16,7 @@ format(VM,Expr) when is_list(Expr) ->
 format(_VM,undefined) ->
 	"";
 
-format(VM,{erlv8_object, _}=O) ->
+format(VM,{erlv8_object, _, _}=O) ->
 	"{" ++	lists:flatten(string:join(lists:map(fun ({K,V}) ->
 														format(VM, K) ++ ":" ++ format(VM, V)
 												end, O:proplist()), ", ")) ++ "}";
