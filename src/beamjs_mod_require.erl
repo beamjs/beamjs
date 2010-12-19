@@ -48,12 +48,16 @@ require_file(#erlv8_fun_invocation{ vm = VM } = Invocation, Filename) ->
 		[S|_] ->
 			{ok, NewVM} = erlv8_vm:new(),	
 			beamjs:load_default_mods(NewVM),
-			Global = erlv8_vm:global(NewVM),
+			NewGlobal = erlv8_vm:global(NewVM),
 			case erlv8_vm:run(NewVM,S) of
 				{ok, _Result} ->
-					Global:get_value("exports",?V8Arr([]));
-				_Other ->
-					error(not_implemented)
+					NewGlobal:get_value("exports",?V8Arr([]));
+				{exception, Exception} ->
+					{throw, Exception};
+				{compilation_failed, Exception} ->
+					{throw, Exception};
+				_ ->
+					ignore_for_now
 			end
 	end.
 	
