@@ -74,16 +74,25 @@ listeners(#erlv8_fun_invocation{ this = This}, [Event]) ->
 
 remove_listener(#erlv8_fun_invocation{ this = This}, [Listener]) -> 
 	Pid = This:get_hidden_value("eventManager"),
-	_Listeners = This:get_hidden_value("_listeners"),
-	%% TODO: remove listener from Listeners
+	Listeners = This:get_hidden_value("_listeners"),
+	lists:foreach(fun ({_,EventListeners}) ->
+						  lists:foldl(fun (L,I) ->
+											  case L:equals(Listener) of
+												  true ->
+													  EventListeners:delete(I), 
+													  I;
+												  false ->
+													  I+1
+											  end
+									  end, 0, EventListeners:list())
+				  end, Listeners:proplist()),
 	gen_event:notify(Pid,{remove_listener, Listener}),
 	undefined.	
 
-remove_all_listeners(#erlv8_fun_invocation{ vm = VM, this = This },[Event]) ->
+remove_all_listeners(#erlv8_fun_invocation{  this = This },[Event]) ->
 	Pid = This:get_hidden_value("eventManager"),
 	Listeners = This:get_hidden_value("_listeners"),
-	_EventListeners = Listeners:get_value(Event,erlv8_vm:taint(VM,?V8Arr([]))),
-	%% TODO: remove all event listeners from EventListeners
+	Listeners:set_value(Event,?V8Arr([])),
 	gen_event:notify(Pid,{remove_all, Event}),
 	undefined.
 
