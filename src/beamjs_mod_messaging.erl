@@ -40,14 +40,13 @@ new_mailbox(#erlv8_fun_invocation{ this = This }=I,[OptsOrName]) ->
 	Prototype:set_prototype(beamjs_mod_events:prototype_EventEmitter()), %% FIXME?
 	Emitter = This:get_value("emit"),
 
-	%% not sure if we want start or start_link here:
 	{ok, Pid} =
 	case OptsOrName of
 		noname ->
 			gen_server2:start(?MODULE, {gen_server2, This, Emitter}, []);
 		Name when is_list(Name) ->
 			gen_server2:start({local,list_to_atom(Name)}, ?MODULE, {gen_server2, This, Emitter}, []);
-		{erlv8_object,_} ->
+		{erlv8_object,_,_} ->
 			case  OptsOrName:get_value("global") of
 				undefined ->
 					{throw, {error, "new Mailbox() accepts either zero arguments or a string, or {global: string}"}};
@@ -55,22 +54,23 @@ new_mailbox(#erlv8_fun_invocation{ this = This }=I,[OptsOrName]) ->
 					gen_server2:start({global,GlobalName}, ?MODULE, {gen_server2, This, Emitter}, [])
 			end
 	end,
-			
 	This:set_hidden_value("mailboxServer", Pid),
 	undefined.
 
 send(#erlv8_fun_invocation{},[Name, Data]) when is_list(Name) ->
 	list_to_existing_atom(Name) ! Data;
 
-send(#erlv8_fun_invocation{},[{erlv8_object, _}=O,Data])  ->
+send(#erlv8_fun_invocation{},[{erlv8_object, _, _}=O,Data])  ->
 	case O:get_value("global") of
-		Name when is_list(Name) ->
+		undefined ->
+			Pid = O:get_hidden_value("mailboxServer"),
+			Pid ! Data;
+		Name when not is_tuple(Name) ->
 			global:sync(), %% FIXME: remove this when global API will be exposed
 			global:send(Name,untaint(Data)),
 			Data;
 		_ ->
-			Pid = O:get_hidden_value("mailboxServer"),
-			Pid ! Data
+			false
 	end.
 
 
