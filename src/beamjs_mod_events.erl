@@ -50,8 +50,13 @@ add_listener(Type, #erlv8_fun_invocation{ this = This },[Event, Listener]) ->
 	Ref = make_ref(),
 	gen_event:add_handler(Pid, {?MODULE, {Ref, Event, Listener}}, {gen_event, Type, Event, Listener}),
 	Listeners = This:get_hidden_value("_listeners"),
-	EventListeners = Listeners:get_value(Event,[]),
-	Listeners:set_value(Event,[Listener|EventListeners]),
+	EventListeners = Listeners:get_value(Event),
+	case EventListeners of
+		undefined ->
+			Listeners:set_value(Event, ?V8Arr([Listener]));
+		_ ->
+			EventListeners:push(Listener)
+	end,
 	undefined.
 
 add_listener(#erlv8_fun_invocation{}=I,Args) ->
@@ -69,11 +74,16 @@ listeners(#erlv8_fun_invocation{ this = This}, [Event]) ->
 
 remove_listener(#erlv8_fun_invocation{ this = This}, [Listener]) -> 
 	Pid = This:get_hidden_value("eventManager"),
+	_Listeners = This:get_hidden_value("_listeners"),
+	%% TODO: remove listener from Listeners
 	gen_event:notify(Pid,{remove_listener, Listener}),
 	undefined.	
 
-remove_all_listeners(#erlv8_fun_invocation{ this = This },[Event]) ->
+remove_all_listeners(#erlv8_fun_invocation{ vm = VM, this = This },[Event]) ->
 	Pid = This:get_hidden_value("eventManager"),
+	Listeners = This:get_hidden_value("_listeners"),
+	_EventListeners = Listeners:get_value(Event,erlv8_vm:taint(VM,?V8Arr([]))),
+	%% TODO: remove all event listeners from EventListeners
 	gen_event:notify(Pid,{remove_all, Event}),
 	undefined.
 

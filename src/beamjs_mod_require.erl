@@ -8,7 +8,7 @@ init(_VM) ->
 
 exports(_VM) ->
 	{ok, Cwd} = file:get_cwd(),
-	erlv8_fun:new(fun require/2,erlv8_object:new([{"paths", [Cwd]}])).
+	erlv8_fun:new(fun require/2,?V8Obj([{"paths", ?V8Arr([Cwd])}])).
 
 require(#erlv8_fun_invocation{ vm = VM } = Invocation, [Filename]) ->
 	case application:get_env(beamjs,available_mods) of
@@ -23,10 +23,11 @@ require(#erlv8_fun_invocation{ vm = VM } = Invocation, [Filename]) ->
 			require_file(Invocation, Filename)
 	end.
 
-require_file(#erlv8_fun_invocation{} = Invocation, Filename) ->
+require_file(#erlv8_fun_invocation{ vm = VM } = Invocation, Filename) ->
 	Global = Invocation:global(),
 	Require = Global:get_value("require"),
 	RequireObject = Require:object(),
+	Paths = RequireObject:get_value("paths",erlv8_vm:taint(VM,?V8Arr(["."]))),
 	Sources = lists:filter(fun (not_found) -> 
 								 false;
 							 (_) ->
@@ -40,7 +41,7 @@ require_file(#erlv8_fun_invocation{} = Invocation, Filename) ->
 												   binary_to_list(B)
 										   end
 								   end,
-								   RequireObject:get_value("paths","."))),
+								   Paths:list())),
 	case Sources of 
 		[] ->
 			{throw, {error, lists:flatten(io_lib:format("Cannot find module '~s'",[Filename])) }};
@@ -50,7 +51,7 @@ require_file(#erlv8_fun_invocation{} = Invocation, Filename) ->
 			Global = erlv8_vm:global(NewVM),
 			case erlv8_vm:run(NewVM,S) of
 				{ok, _Result} ->
-					Global:get_value("exports",[]);
+					Global:get_value("exports",?V8Arr([]));
 				_Other ->
 					error(not_implemented)
 			end
