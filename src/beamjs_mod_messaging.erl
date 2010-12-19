@@ -95,7 +95,7 @@ handle_cast(_Msg, State) ->
 	{noreply, State}.
 
 handle_info(Info, {This,Emitter}=State) ->
-	Emitter:call(This,["info",Info]),
+	This:call(Emitter,["info",Info]),
 	{noreply, State}.
 
 terminate(_Reason, _State) ->
