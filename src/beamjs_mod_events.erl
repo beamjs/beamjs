@@ -48,6 +48,7 @@ emit(#erlv8_fun_invocation{ this = This },[Event|Args]) ->
 add_listener(Type, #erlv8_fun_invocation{ this = This },[Event, Listener]) ->
 	Pid = This:get_hidden_value("eventManager"),
 	Ref = make_ref(),
+	gen_event:notify(Pid,{event, "newListener", [Event, Listener]}),
 	gen_event:add_handler(Pid, {?MODULE, {Ref, Event, Listener}}, {gen_event, Type, Event, Listener}),
 	Listeners = This:get_hidden_value("_listeners"),
 	EventListeners = Listeners:get_value(Event),
@@ -57,7 +58,7 @@ add_listener(Type, #erlv8_fun_invocation{ this = This },[Event, Listener]) ->
 		_ ->
 			EventListeners:push(Listener)
 	end,
-	undefined.
+	ok.
 
 add_listener(#erlv8_fun_invocation{}=I,Args) ->
 	add_listener(normal, I, Args).
