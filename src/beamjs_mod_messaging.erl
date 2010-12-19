@@ -22,8 +22,8 @@ exports(_VM) ->
 			
 
 prototype() ->
-	?V8Obj([{"send", erlv8_fun:new(fun send/2,
-								   ?V8Obj([{"global",fun send_global/2}]))}]).
+	?V8Obj([{"send", fun send/2},
+			{"sendGlobal",fun send_global/2}]).
 
 
 new_mailbox1(#erlv8_fun_invocation{ this = This }=I) ->
@@ -68,9 +68,9 @@ send(#erlv8_fun_invocation{},[{erlv8_object, _}=O,Data])  ->
 	Pid = O:get_hidden_value("mailboxServer"),
 	Pid ! Data.
 
-send_global(#erlv8_fun_invocation{},[Name, Data]) ->
-	global:sync(), %% FIXME: remove this when global API will be exposed
-	global:send(Name,untaint(Data)),
+send_global(#erlv8_fun_invocation{ this = This },[Name, Data]) ->
+	Pid = This:get_hidden_value("mailboxServer"),
+	gen_server2:call(Pid,{'$send.global',Name,Data}),
 	Data.
 
 
@@ -87,6 +87,11 @@ nodes_nodes(#erlv8_fun_invocation{},[]) ->
 	
 
 % gen_server2 
+
+handle_call({'$send.global', Name, Data}, _From, State) ->
+	global:sync(), %% FIXME: remove this when global API will be exposed
+	global:send(Name,untaint(Data)),
+	{reply, Data, State};
 
 handle_call(_Request, _From, State) ->
 	{noreply, State}.
