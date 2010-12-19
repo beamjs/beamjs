@@ -35,7 +35,7 @@ args(toolbar) ->
 
 args(mod) ->
 	case init:get_argument(mod) of
-		{ok, [Alias, Mod]} ->
+		{ok, [[Alias, Mod]]} ->
 			case application:get_env(beamjs,available_mods) of
 				{ok, Mods} ->
 					application:set_env(beamjs,available_mods,[{Alias,list_to_atom(Mod)}|Mods]);
@@ -48,7 +48,7 @@ args(mod) ->
 
 args(VM,default_mod) ->
 	case init:get_argument(default_mod) of
-		{ok, [Alias, Mod]} ->
+		{ok, [[Alias, Mod]]} ->
 			erlv8_vm:register(VM,Alias,list_to_atom(Mod));
 		_ ->
 			false
