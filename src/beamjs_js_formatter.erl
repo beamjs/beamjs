@@ -1,20 +1,16 @@
 -module(beamjs_js_formatter).
 -export([format/2,format_exception/2]).
 
-format(VM,Expr) when is_list(Expr) ->
-	Expr1 = lists:flatten(io_lib:format("~p",[Expr])),
-	Detail = erlv8_vm:to_detail_string(VM,Expr),
-	case ("\"" ++ Detail ++ "\"") of
-		Expr1 -> %% it is an actual string
-			"\"" ++ Expr ++ "\"";
-		_ ->
-			"[" ++ lists:flatten(string:join(lists:map(fun (I) ->
-															   format(VM, I)
-													   end, Expr), ", ")) ++ "]"
-	end;
+format(_VM,Expr) when is_list(Expr) ->
+	lists:flatten(io_lib:format("~p",[Expr]));
 
 format(_VM,undefined) ->
 	"";
+
+format(VM,{erlv8_array, _, _}=A) ->
+	"[" ++ lists:flatten(string:join(lists:map(fun (I) ->
+													   format(VM, I)
+											   end, A:list()), ", ")) ++ "]";
 
 format(VM,{erlv8_object, _, _}=O) ->
 	"{" ++	lists:flatten(string:join(lists:map(fun ({K,V}) ->
