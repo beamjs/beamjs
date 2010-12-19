@@ -2,11 +2,6 @@
 -export([exports/1,init/1]).
 -behaviour(erlv8_module).
 -include_lib("erlv8/include/erlv8.hrl").
-%-behaviour(gen_server2).
-%% gen_server2 callbacks
--export([handle_call/3, handle_cast/2, handle_info/2,
-		 terminate/2, code_change/3]).
-
 
 init({gen_server2,This, Emitter}) ->
 	{ok, {This, Emitter}};
@@ -14,12 +9,9 @@ init(_VM) ->
 	ok.
 
 exports(_VM) ->
- 	?V8Obj([{"Mailbox", fun new_mailbox/2}]).
+ 	?V8Obj([{"Mailbox", fun new_mailbox/2},
+			{"send", fun send/2}]).
 	
-prototype() ->
-	?V8Obj([{"send", fun send/2}]).
-
-
 new_mailbox(#erlv8_fun_invocation{}=I,[]) ->
 	new_mailbox(I,[noname]);
 
@@ -31,27 +23,29 @@ new_mailbox(#erlv8_fun_invocation{ this = This }=I,[OptsOrName]) ->
 
 	EventEmitterCtor:call(This,[]),
 
-	This:set_prototype(prototype()),
 	Prototype = This:get_prototype(),
 	Prototype:set_prototype(beamjs_mod_events:prototype_EventEmitter()), %% FIXME?
 	Emitter = This:get_value("emit"),
 
-	{ok, Pid} =
+	Pid = spawn(fun () -> mailbox(This, Emitter) end),
+	This:set_hidden_value("mailboxServer", Pid),
+
 	case OptsOrName of
-		noname ->
-			gen_server2:start(?MODULE, {gen_server2, This, Emitter}, []);
 		Name when is_list(Name) ->
-			gen_server2:start({local,list_to_atom(Name)}, ?MODULE, {gen_server2, This, Emitter}, []);
+			register(list_to_atom(Name), Pid), ok;
 		{erlv8_object,_,_} ->
 			case  OptsOrName:get_value("global") of
 				undefined ->
 					{throw, {error, "new Mailbox() accepts either zero arguments or a string, or {global: string}"}};
 				GlobalName ->
-					gen_server2:start({global,GlobalName}, ?MODULE, {gen_server2, This, Emitter}, [])
+					case global:register_name(GlobalName, Pid) of
+						yes ->
+							true;
+						no ->
+							{throw, {error, "Wasn't able to register a global name " ++ GlobalName }}
+					end
 			end
-	end,
-	This:set_hidden_value("mailboxServer", Pid),
-	undefined.
+	end.
 
 send(#erlv8_fun_invocation{},[Name, Data]) when is_list(Name) ->
 	list_to_existing_atom(Name) ! Data;
@@ -69,27 +63,12 @@ send(#erlv8_fun_invocation{},[{erlv8_object, _, _}=O,Data])  ->
 			false
 	end.
 
-
-% gen_server2 
-
-handle_call(_Request, _From, State) ->
-	{noreply, State}.
-
-handle_cast(_Msg, State) ->
-	{noreply, State}.
-
-handle_info(Info, {This,Emitter}=State) ->
-	This:call(Emitter,["info",Info]),
-	{noreply, State}.
-
-terminate(_Reason, _State) ->
-	ok.
-
-code_change(_OldVsn, State, _Extra) ->
-	{ok, State}.
-
-
 %% private
+
+mailbox(This, Emitter) ->
+	receive Msg -> This:call(Emitter, ["message",Msg]) end, 
+	mailbox(This, Emitter).
+
 
 untaint({erlv8_object, _}=O) ->
 	{erlv8_object,lists:map(fun ({Key, Val}) ->
