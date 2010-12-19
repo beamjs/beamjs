@@ -14,12 +14,8 @@ init(_VM) ->
 	ok.
 
 exports(_VM) ->
- 	?V8Obj([{"Mailbox", fun new_mailbox/2},
-			{"Node", ?V8Obj([{this, node()},
-							 {ping, fun nodes_ping/2},
-							 {nodes, fun nodes_nodes/2}])}]).
-			
-
+ 	?V8Obj([{"Mailbox", fun new_mailbox/2}]).
+	
 prototype() ->
 	?V8Obj([{"send", fun send/2}]).
 
@@ -73,18 +69,6 @@ send(#erlv8_fun_invocation{},[{erlv8_object, _, _}=O,Data])  ->
 			false
 	end.
 
-
-nodes_ping(#erlv8_fun_invocation{},[Node]) ->
-	case net_adm:ping(list_to_atom(Node)) of
-		pong ->
-			true;
-		pang ->
-			false
-	end.
-
-nodes_nodes(#erlv8_fun_invocation{},[]) ->
-	nodes().
-	
 
 % gen_server2 
 
