@@ -60,7 +60,14 @@ args(VM,load) ->
 			lists:foreach(fun (File) ->
 								  {ok, B} = file:read_file(File),
 								  S = binary_to_list(B),
-								  erlv8_vm:run(VM, S)
+								  case erlv8_vm:run(VM, S) of
+									  {ok, _} ->
+										  ok;
+									  {exception, E} ->
+										  io:format("Exception: ~s~n",[beamjs_js_formatter:format_exception(VM,E)]);
+									  {compilation_failed, E} ->
+										  io:format("Compilation failed: ~s~n",[beamjs_js_formatter:format_exception(VM,E)])
+								  end
 						  end, Files);
 		_ ->
 			false
