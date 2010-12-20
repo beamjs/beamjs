@@ -47,6 +47,9 @@ new_mailbox(#erlv8_fun_invocation{ this = This }=I,[OptsOrName]) ->
 			end
 	end.
 
+send(#erlv8_fun_invocation{},[Pid, Data]) when is_pid(Pid) ->
+	Pid ! Data;
+
 send(#erlv8_fun_invocation{},[Name, Data]) when is_list(Name) ->
 	list_to_existing_atom(Name) ! Data;
 
