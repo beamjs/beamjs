@@ -14,3 +14,4 @@ test: compile
 
 compile: dependencies
 	@./rebar compile
+	@cat ebin/beamjs.app | sed s/%sha%/`git log -1 --pretty=format:%h`/ > ebin/beamjs.app

@@ -7,8 +7,10 @@ init(_VM) ->
 	reloader:start().
 
 exports(_VM) ->
+	{beamjs,_,Version} = lists:keyfind(beamjs,1,application:which_applications()),
 	?V8Obj([{"print", fun print/2},
-			{"beamjs", ?V8Obj([{"reload", fun reload/2}])}]).
+			{"beamjs", ?V8Obj([{"version", Version},
+							   {"reload", fun reload/2}])}]).
 
 print(#erlv8_fun_invocation{ vm = VM} = _Invocation, [Expr]) ->
 	io:format("~s",[erlv8_vm:to_detail_string(VM,Expr)]),
