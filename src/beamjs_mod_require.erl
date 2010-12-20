@@ -8,7 +8,10 @@ init(_VM) ->
 
 exports(_VM) ->
 	{ok, Cwd} = file:get_cwd(),
-	erlv8_fun:new(fun require/2,?V8Obj([{"paths", ?V8Arr([Cwd])}])).
+	erlv8_fun:new(fun require/2,?V8Obj([
+										{"__doc__", "*require* provides a way to load another javascript modules. Not fully compatible with [CommonJS Modules/1.1](http://wiki.commonjs.org/wiki/Modules/1.1) yet,"
+										 "but eventually [will be](https://github.com/beamjs/beamjs/issues/issue/3)"},
+										{"paths", ?V8Arr([Cwd])}])).
 
 require(#erlv8_fun_invocation{ vm = VM } = Invocation, [Filename]) ->
 	case application:get_env(beamjs,available_mods) of
