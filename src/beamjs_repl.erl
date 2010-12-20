@@ -50,7 +50,7 @@ start_link(Prompt,InteractionModule,VM) ->
 %% @end
 %%--------------------------------------------------------------------
 init([Prompt, InteractionModule, undefined]) ->
-	{ok, VM} = erlv8_vm:new(),
+	{ok, VM} = erlv8_vm:start(),
 	init([Prompt, InteractionModule, VM, ready]);
 init([Prompt, InteractionModule, VM]) ->
 	init([Prompt, InteractionModule, VM, ready]);
@@ -77,7 +77,7 @@ init([Prompt, InteractionModule, VM, NextState]) ->
 ready(read, #state{ prompt = Prompt, im = IM, vm = VM } = State) ->
 	Expr = IM:read(Prompt),
 	Self = self(),
-	spawn(fun () -> gen_fsm:send_event(Self, {result, erlv8_vm:run(VM, Expr)}) end),
+	spawn(fun () -> gen_fsm:send_event(Self, {result, erlv8_vm:run(VM, Expr,{"console",0,0})}) end),
 	{next_state, print, State#state{ expr = Expr }}.
 
 %% ready({result,_}=_Evt,State) ->

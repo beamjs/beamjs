@@ -150,7 +150,7 @@ call_if_present(Args, {_, This, Event, Listener}=State) ->
 -ifdef(TEST).
 one_listener_test() ->
 	erlv8:start(),
-	{ok, VM} = erlv8_vm:new(),
+	{ok, VM} = erlv8_vm:start(),
 	erlv8_vm:register(VM,'require',beamjs_mod_require),
 	application:set_env(beamjs,available_mods,[{"events",?MODULE},
 											   {"messaging",beamjs_mod_messaging}]),
@@ -171,7 +171,7 @@ one_listener_test() ->
 
 once_listener_test() ->
 	erlv8:start(),
-	{ok, VM} = erlv8_vm:new(),
+	{ok, VM} = erlv8_vm:start(),
 	erlv8_vm:register(VM,'require',beamjs_mod_require),
 	application:set_env(beamjs,available_mods,[{"events",?MODULE},
 											   {"messaging",beamjs_mod_messaging}]),
@@ -201,7 +201,7 @@ once_listener_test_loop(F) ->
 
 two_listeners_test() ->
 	erlv8:start(),
-	{ok, VM} = erlv8_vm:new(),
+	{ok, VM} = erlv8_vm:start(),
 	erlv8_vm:register(VM,'require',beamjs_mod_require),
 	application:set_env(beamjs,available_mods,[{"events",?MODULE},
 											   {"messaging",beamjs_mod_messaging}]),
@@ -231,7 +231,7 @@ two_listeners_test_loop(N) ->
 
 new_listener_event_test() ->
 	erlv8:start(),
-	{ok, VM} = erlv8_vm:new(),
+	{ok, VM} = erlv8_vm:start(),
 	erlv8_vm:register(VM,'require',beamjs_mod_require),
 	application:set_env(beamjs,available_mods,[{"events",?MODULE},
 											   {"messaging",beamjs_mod_messaging}]),
@@ -252,7 +252,7 @@ new_listener_event_test() ->
 
 listener_removal_test() ->
 	erlv8:start(),
-	{ok, VM} = erlv8_vm:new(),
+	{ok, VM} = erlv8_vm:start(),
 	erlv8_vm:register(VM,'require',beamjs_mod_require),
 	application:set_env(beamjs,available_mods,[{"events",?MODULE}]),
 	{ok, Arr} = erlv8_vm:run(VM,
@@ -271,7 +271,7 @@ listener_removal_test() ->
 
 event_listeners_removal_test() ->
 	erlv8:start(),
-	{ok, VM} = erlv8_vm:new(),
+	{ok, VM} = erlv8_vm:start(),
 	erlv8_vm:register(VM,'require',beamjs_mod_require),
 	application:set_env(beamjs,available_mods,[{"events",?MODULE}]),
 	{ok, Arr} = erlv8_vm:run(VM,
@@ -290,7 +290,7 @@ event_listeners_removal_test() ->
 
 listeners_test() ->
 	erlv8:start(),
-	{ok, VM} = erlv8_vm:new(),
+	{ok, VM} = erlv8_vm:start(),
 	erlv8_vm:register(VM,'require',beamjs_mod_require),
 	application:set_env(beamjs,available_mods,[{"events",?MODULE},
 											   {"messaging",beamjs_mod_messaging}]),

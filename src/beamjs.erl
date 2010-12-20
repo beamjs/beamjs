@@ -58,22 +58,17 @@ args(VM,load) ->
 	case init:get_argument(load) of
 		{ok, Files} ->
 			lists:foreach(fun (File) ->
-								  {ok, B} = file:read_file(File),
-								  S = binary_to_list(B),
-								  case erlv8_vm:run(VM, S) of
-									  {ok, _} ->
-										  ok;
-									  {exception, E} ->
-										  io:format("Exception: ~s~n",[beamjs_js_formatter:format_exception(VM,E)]);
-									  {compilation_failed, E} ->
-										  io:format("Compilation failed: ~s~n",[beamjs_js_formatter:format_exception(VM,E)])
-								  end
+								  Global = erlv8_vm:global(VM),
+								  Require = Global:get_value("require"),
+								  Require:call([File])
 						  end, Files);
 		_ ->
 			false
 	end.
 
 	
+-define(REPL_START,"require('repl').start()").
+
 main() ->
 	case os:getenv("ERLV8_SO_PATH") of
 		false ->
@@ -81,7 +76,7 @@ main() ->
 	end,
 	erlv8:start(),
 	start(),
-	{ok, VM} = erlv8_vm:new(),
+	{ok, VM} = erlv8_vm:start(),
 	load_default_mods(VM),
 	NoRepl = args(norepl),
 	args(toolbar),
@@ -92,7 +87,7 @@ main() ->
 		true ->
 			ok;
 		false ->
-			erlv8_vm:run(VM, "require('repl').start()")
+			erlv8_vm:run(VM, ?REPL_START, {"main",0,0})
 	end,
 	erlang:halt().
 
