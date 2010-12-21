@@ -48,7 +48,7 @@ require_file(#erlv8_fun_invocation{ vm = VM } = Invocation, Filename) ->
 											   {error, _} ->
 												   not_found;
 											   {ok, B} ->
-												   {Path, Filename ++ ".js", binary_to_list(B)}
+												   {filename:dirname(filename:absname(Path ++ "/" ++ Filename)), Filename ++ ".js", binary_to_list(B)}
 										   end
 								   end,
 								   Paths:list())),
