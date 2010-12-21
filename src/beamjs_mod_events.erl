@@ -45,8 +45,28 @@ new_event_emitter(#erlv8_fun_invocation{ this = This },[]) ->
 	This:set_hidden_value("_listeners",?V8Obj([])),
 	undefined.
 
-emit(#erlv8_fun_invocation{ this = This },[Event|Args]) ->
+emit(#erlv8_fun_invocation{ this = This } = Invocation,[Event|Args]) ->
 	Pid = This:get_hidden_value("eventManager"),
+	Listeners = This:get_hidden_value("_listeners"),
+	EventListeners = Listeners:get_value(Event),
+	Handlers = gen_event:which_handlers(Pid),
+	case EventListeners:length() /= length(Handlers) of
+		true -> %% take care of additions (removals will be taken care by a handler itself
+			lists:foreach(fun (L) ->
+								  case lists:filter(fun ({?MODULE, {_, HandlerEvent, Listener}}) ->
+															HandlerEvent == Event andalso Listener:equals(L);
+														(_) ->
+															false
+													end, Handlers) of
+									  [] -> %% no matching handler 
+										  add_listener(Invocation, [Event, L]);
+									  _ ->
+										  ok
+								  end
+						  end, EventListeners:list());
+		false ->
+			ignore
+	end,
 	gen_event:notify(Pid,{event, Event, Args}),
 	undefined.
 
@@ -130,6 +150,20 @@ handle_call(_Req,State) ->
 
 handle_info(_Info,State) ->
 	{ok, State}.
+
+terminate(remove_handler, {_, This, Event, Listener}=_State) ->
+	Listeners = This:get_hidden_value("_listeners"),
+	EventListeners = Listeners:get_value(Event),
+	lists:foldl(fun (L,I) ->
+						case L:equals(Listener) of
+							true ->
+								EventListeners:delete(I), 
+								I;
+							false ->
+								I+1
+						end
+				end, 0, EventListeners:list()),
+	ok;
 
 terminate(_Args, _State) ->
     ok.
@@ -293,7 +327,7 @@ event_listeners_removal_test() ->
 	?assertEqual(undefined,Root:get_value("value")),
 	erlv8:stop().
 
-listeners_test() ->
+listeners_manual_removal_test() ->
 	erlv8:start(),
 	{ok, VM} = erlv8_vm:start(),
 	erlv8_vm:register(VM,'require',beamjs_mod_require),
@@ -312,24 +346,61 @@ listeners_test() ->
     Global = erlv8_vm:global(VM),
     L1 = Global:get_value("l1"),
     L2 = Global:get_value("l2"),
+	?assertEqual(2,Listeners:length()),
 	ListenersList = Listeners:list(),
 	?assert(L1:equals(lists:nth(1,ListenersList))),
 	?assert(L2:equals(lists:nth(2,ListenersList))),
 	Listeners:delete(0),
 	erlv8_vm:run(VM,"emitter.emit('event');"),
-	listeners_test_loop(false),
+	listeners_manual_removal_test_loop(false),
 	erlv8:stop().
 
-listeners_test_loop(F) ->
+listeners_manual_removal_test_loop(F) ->
 	receive 
 		2 ->
-			listeners_test_loop(true);
+			listeners_manual_removal_test_loop(true);
 		1 ->
 			error({bad_result, 1});
 		Other ->
 			error({bad_result, Other})
 	after 200 ->
 			?assert(F)
+	end.
+
+listeners_manual_addition_test() ->
+	erlv8:start(),
+	{ok, VM} = erlv8_vm:start(),
+	erlv8_vm:register(VM,'require',beamjs_mod_require),
+	application:set_env(beamjs,available_mods,[{"events",?MODULE},
+											   {"messaging",beamjs_mod_messaging}]),
+    Global = erlv8_vm:global(VM),
+	Global:set_value("reportTo",self()),
+	{ok, Listeners} = erlv8_vm:run(VM,
+								   "var emitter = new (require('events').EventEmitter)();"
+								   "var msg = require('messaging');"
+								   "var l1 = function() { msg.send(reportTo, 1) };"
+								   "var l2 = function() { msg.send(reportTo, 2) };"
+								   "emitter.addListener('event', l1);"
+								   "emitter.listeners('event');"),
+    Global = erlv8_vm:global(VM),
+    L1 = Global:get_value("l1"),
+    L2 = Global:get_value("l2"),
+	?assertEqual(1,Listeners:length()),
+	ListenersList = Listeners:list(),
+	?assert(L1:equals(lists:nth(1,ListenersList))),
+	Listeners:push(L2),
+	erlv8_vm:run(VM,"emitter.emit('event');"),
+	listeners_manual_addition_test_loop(0),
+	erlv8:stop().
+
+listeners_manual_addition_test_loop(N) ->
+	receive 
+		M when is_integer(M) ->
+			listeners_manual_addition_test_loop(N+M);
+		Other ->
+			error({bad_result, Other})
+	after 200 ->
+			?assertEqual(3,N)
 	end.
 
 
