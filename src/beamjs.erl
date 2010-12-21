@@ -46,6 +46,14 @@ args(mod) ->
 			false
 	end.
 
+args(VM,jseval) ->
+	case init:get_argument(jseval) of
+		{ok, [[JS]]} ->
+			erlv8_vm:run(VM, erlv8_context:get(VM), JS, {"(command line)",0,0});
+		_ ->
+			false
+	end;
+
 args(VM,default_mod) ->
 	case init:get_argument(default_mod) of
 		{ok, [[Alias, Mod]]} ->
@@ -82,6 +90,7 @@ main() ->
 	args(toolbar),
 	args(mod),
 	args(VM,default_mod),
+	args(VM,jseval),
 	args(VM,load),
 	case NoRepl of
 		true ->
