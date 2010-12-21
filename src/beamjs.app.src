@@ -26,7 +26,8 @@
 		   {"repl", beamjs_mod_repl},
 		   {"events", beamjs_mod_events},
 		   {"messaging", beamjs_mod_messaging},
-		   {"dist", beamjs_mod_dist}
+		   {"dist", beamjs_mod_dist},
+		   {"fs", beamjs_mod_fs}
 		  ]
 		 }
 		]}
