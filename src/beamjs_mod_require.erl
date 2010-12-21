@@ -58,11 +58,23 @@ require_file(#erlv8_fun_invocation{ vm = VM } = Invocation, Filename) ->
 		[{Path,LoadedFilename,S}|_] ->
 			NewCtx = erlv8_context:new(VM),
 			NewGlobal = erlv8_context:global(NewCtx),
+			lists:foreach(fun ({K,V}) ->
+								  NewGlobal:set_value(K,V)
+						  end,  Global:proplist()),
 			NewGlobal:set_value("exports",?V8Obj([])),
 			NewGlobal:set_value("__dirname",Path),
 			NewGlobal:set_value("__filename",filename:join([Path,LoadedFilename])),
 			case erlv8_vm:run(VM,NewCtx,S,{LoadedFilename,0,0}) of
 				{ok, _} ->
+					lists:foreach(fun ({"exports",_}) ->
+										  ignore;
+									  ({"__dirname",_}) ->
+										  ignore;
+									  ({"__filename",_}) ->
+										  ignore;
+									  ({K,V}) ->
+										  Global:set_value(K,V)
+								  end,  NewGlobal:proplist()),
 					NewGlobal:get_value("exports");
 				{_,E} ->
 					{throw, E}
