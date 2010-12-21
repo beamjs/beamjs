@@ -101,7 +101,7 @@ send(#erlv8_fun_invocation{},[{erlv8_object, _, _}=O,Data])  ->
 			Pid ! Data;
 		Name when not is_tuple(Name) ->
 			global:sync(), %% FIXME: remove this when global API will be exposed
-			global:send(Name,untaint(Data)),
+			global:send(Name,erlv8_vm:untaint(Data)),
 			Data;
 		_ ->
 			false
@@ -112,20 +112,5 @@ send(#erlv8_fun_invocation{},[{erlv8_object, _, _}=O,Data])  ->
 mailbox(This, Emitter) ->
 	receive Msg -> This:call(Emitter, ["message",Msg]) end, 
 	mailbox(This, Emitter).
-
-
-untaint({erlv8_object, _}=O) ->
-	{erlv8_object,lists:map(fun ({Key, Val}) ->
-									{Key, untaint(Val)}
-							end,O:proplist())};
-untaint({erlv8_fun, _}=F) -> %% broken
-	{erlv8_object,untaint(F:object())};
-untaint([H|T]) ->
-	[untaint(H)|untaint(T)];
-untaint([]) ->
-	[];
-untaint(Other) ->
-	Other.
-
 
 
