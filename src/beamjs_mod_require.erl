@@ -64,8 +64,8 @@ require_file(#erlv8_fun_invocation{ vm = VM } = Invocation, Filename) ->
 			case erlv8_vm:run(VM,NewCtx,S,{LoadedFilename,0,0}) of
 				{ok, _} ->
 					NewGlobal:get_value("exports");
-				{_,_} ->
-					ignore_for_now
+				{_,E} ->
+					{throw, E}
 			end
 	end.
 	
