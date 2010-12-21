@@ -12,7 +12,7 @@ exports(VM) ->
  	Obj = erlv8_vm:taint(VM,
 						 ?V8Obj([{"Mailbox", erlv8_fun:new(fun new_mailbox/2,
 														   ?V8Obj([{"__doc__",
-																	"A constructor for Mailbox, an [EventEmitter](/events/EventEmitter) that emits a single message *message(Message)** for each received message.\n\n"
+																	"A constructor for Mailbox, an [EventEmitter](/events/EventEmitter) that emits a single message *message(Message)* for each received message.\n\n"
 																	"#### Registers unnamed mailbox\n\n"
 																	"<code>new Mailbox()</code>\n\n"
 																	"#### Registers a local named mailbox:\n\n"
