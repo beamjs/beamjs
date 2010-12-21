@@ -4,9 +4,6 @@
 -behaviour(erlv8_module).
 -include_lib("erlv8/include/erlv8.hrl").
 
--define(PREAMBLE, "(function (exports, __filename, __dirname) { ").
--define(POSTAMBLE, "})").
-
 init(_VM) ->
 	ok.
 
@@ -36,7 +33,7 @@ require(#erlv8_fun_invocation{ vm = VM } = Invocation, [Filename]) ->
 			require_file(Invocation, Filename)
 	end.
 
-require_file(#erlv8_fun_invocation{ this = This, vm = VM } = Invocation, Filename) ->
+require_file(#erlv8_fun_invocation{ vm = VM } = Invocation, Filename) ->
 	Global = Invocation:global(),
 	Require = Global:get_value("require"),
 	RequireObject = Require:object(),
@@ -59,11 +56,14 @@ require_file(#erlv8_fun_invocation{ this = This, vm = VM } = Invocation, Filenam
 		[] ->
 			{throw, {error, lists:flatten(io_lib:format("Cannot find module '~s'",[Filename])) }};
 		[{Path,LoadedFilename,S}|_] ->
-			ModuleObject = erlv8_vm:taint(VM,?V8Obj([{"exports",?V8Obj([])}])),
-			case erlv8_vm:run(VM,?PREAMBLE ++ S ++ ?POSTAMBLE,{LoadedFilename,0,-length(?PREAMBLE)}) of
-				{ok, F} ->
-					F:call(This, [ModuleObject:get_value("exports"), filename:join([Path,LoadedFilename]), Path]),
-					ModuleObject:get_value("exports");
+			NewCtx = erlv8_context:new(VM),
+			NewGlobal = erlv8_context:global(NewCtx),
+			NewGlobal:set_value("exports",?V8Obj([])),
+			NewGlobal:set_value("__dirname",Path),
+			NewGlobal:set_value("__filename",filename:join([Path,LoadedFilename])),
+			case erlv8_vm:run(VM,NewCtx,S,{LoadedFilename,0,0}) of
+				{ok, _} ->
+					NewGlobal:get_value("exports");
 				{_,_} ->
 					ignore_for_now
 			end

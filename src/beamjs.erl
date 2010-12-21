@@ -87,7 +87,7 @@ main() ->
 		true ->
 			ok;
 		false ->
-			erlv8_vm:run(VM, ?REPL_START, {"main",0,0})
+			erlv8_vm:run(VM, erlv8_context:get(VM), ?REPL_START, {"main",0,0})
 	end,
 	erlang:halt().
 
