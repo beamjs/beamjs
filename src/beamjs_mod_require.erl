@@ -61,6 +61,7 @@ require_file(#erlv8_fun_invocation{ vm = VM } = Invocation, Filename) ->
 			lists:foreach(fun ({K,V}) ->
 								  NewGlobal:set_value(K,V)
 						  end,  Global:proplist()),
+			NewGlobal:set_value("require",fun require/2),
 			NewGlobal:set_value("exports",?V8Obj([])),
 			NewGlobal:set_value("__dirname",Path),
 			NewGlobal:set_value("__filename",filename:join([Path,LoadedFilename])),
