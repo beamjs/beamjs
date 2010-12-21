@@ -56,7 +56,7 @@ args(VM,default_mod) ->
 
 args(VM,load) ->
 	case init:get_argument(load) of
-		{ok, Files} ->
+		{ok, [Files]} ->
 			lists:foreach(fun (File) ->
 								  Global = erlv8_vm:global(VM),
 								  Require = Global:get_value("require"),
