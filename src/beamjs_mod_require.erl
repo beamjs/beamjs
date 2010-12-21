@@ -34,6 +34,23 @@ require(#erlv8_fun_invocation{ vm = VM } = Invocation, [Filename]) ->
 			require_file(Invocation, Filename)
 	end.
 
+file_reader(Path,Filename) ->
+	case file_reader(Path,Filename,".js") of
+		not_found ->
+			file_reader(Path,Filename,"");
+		Result ->
+			Result
+	end.
+
+file_reader(Path,Filename,Ext) ->
+	case file:read_file(filename:join([Path, Filename ++ Ext])) of
+		{error, _} ->
+			not_found;
+		{ok, B} ->
+			{filename:dirname(filename:absname(Path ++ "/" ++ Filename)), Filename ++ Ext, binary_to_list(B)}
+	end.
+
+
 require_file(#erlv8_fun_invocation{ vm = VM } = Invocation, Filename) ->
 	Global = Invocation:global(),
 	Require = Global:get_value("require"),
@@ -44,15 +61,7 @@ require_file(#erlv8_fun_invocation{ vm = VM } = Invocation, Filename) ->
 							 (_) ->
 								 true
 						 end,
-						 lists:map(fun (Path) ->
-										   case file:read_file(filename:join([Path, Filename ++ ".js"])) of
-											   {error, _} ->
-												   not_found;
-											   {ok, B} ->
-												   {filename:dirname(filename:absname(Path ++ "/" ++ Filename)), Filename ++ ".js", binary_to_list(B)}
-										   end
-								   end,
-								   Paths:list())),
+						 lists:map(fun (Path) -> file_reader(Path, Filename) end,Paths:list())),
 	case Sources of 
 		[] ->
 			{throw, {error, lists:flatten(io_lib:format("Cannot find module '~s'",[Filename])) }};
