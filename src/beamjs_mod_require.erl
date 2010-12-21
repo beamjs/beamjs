@@ -83,7 +83,7 @@ require_file(#erlv8_fun_invocation{ vm = VM } = Invocation, Filename) ->
 								  end,  NewGlobal:proplist()),
 					NewGlobal:get_value("exports");
 				{_,E} ->
-					{throw, E}
+					{throw, {error, E}}
 			end
 	end.
 	
