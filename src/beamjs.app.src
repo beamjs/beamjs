@@ -9,7 +9,7 @@
                   stdlib
                  ]},
   {modules, [beamjs, beamjs_app, beamjs_sup, beamjs_repl_sup, beamjs_repl, beamjs_repl_console, beamjs_js_formatter,
-			 beamjs_mod_exports, beamjs_mod_require, beamjs_mod_sys, beamjs_mod_console, beamjs_mod_repl]},
+			 beamjs_mod_exports, beamjs_mod_require, beamjs_mod_sys, beamjs_mod_console, beamjs_mod_repl, beamjs_mod_os]},
   {mod, { beamjs_app, []}},
   {env, [
 		 {default_mods,
@@ -27,7 +27,8 @@
 		   {"events", beamjs_mod_events},
 		   {"messaging", beamjs_mod_messaging},
 		   {"dist", beamjs_mod_dist},
-		   {"fs", beamjs_mod_fs}
+		   {"fs", beamjs_mod_fs},
+		   {"os", beamjs_mod_os}
 		  ]
 		 }
 		]}
