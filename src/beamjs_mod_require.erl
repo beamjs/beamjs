@@ -78,6 +78,9 @@ require_file(#erlv8_fun_invocation{ vm = VM } = Invocation, Filename) ->
 			lists:foreach(fun ({K,V}) ->
 								  NewRequire:set_value(K,V)
 						  end,  Require:proplist()),
+			NewGlobal:set_value("module",?V8Obj([])),
+			Module = NewGlobal:get_value("module"),
+			Module:set_value("id", Filename, [dontdelete,readonly]),
 			NewGlobal:set_value("exports",?V8Obj([])),
 			NewGlobal:set_value("__dirname",Path),
 			NewGlobal:set_value("__filename",filename:join([Path,LoadedFilename])),
