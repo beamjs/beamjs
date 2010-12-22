@@ -12,7 +12,7 @@ exports(_VM) ->
 
 run(#erlv8_fun_invocation{}=I, [#erlv8_object{}=Tests]) ->
 	lists:foreach(fun ({"test" ++ Name, #erlv8_fun{}=Test}) when length(Name) > 0 ->
-						  io:format("~n Test: ~s~n",[Name]),
+						  io:format("\e[0m~n Test: ~s~n",[Name]),
 						  case Test:call() of
 							  {throw, E} ->
 								  case E of
