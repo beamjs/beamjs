@@ -120,6 +120,7 @@ require_file(#erlv8_fun_invocation{ vm = VM } = Invocation, Filename) ->
 							ets:insert(Tab, {Filename, Exports}),
 							Exports;
 						{_,E} ->
+							ets:delete(Tab, Filename),
 							{throw, {error, E}}
 					end
 			end
