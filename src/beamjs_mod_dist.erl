@@ -17,7 +17,7 @@ exports(_VM) ->
 			{"localhost", erlv8_fun:new(fun localhost/2,
 										?V8Obj([{"__doc__",
 												 "<code>localhost()</code>\n\n"
-												 "Returns the name of the localhost. If *beamjs* was started with"
+												 "Returns the name of the localhost. If *beamjs* was started with "
 												 "the -name command line flag, it will return a fully qualified name."}]))},
 			{"nodes", fun nodes/2}]).
 
