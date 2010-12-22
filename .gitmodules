@@ -1,3 +1,6 @@
 [submodule "deps/erlv8"]
 	path = deps/erlv8
 	url = git://github.com/beamjs/erlv8.git
+[submodule "deps/commonjs"]
+	path = deps/commonjs
+	url = git://github.com/commonjs/commonjs.git
