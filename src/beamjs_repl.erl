@@ -1,6 +1,8 @@
 -module(beamjs_repl).
 
 -behaviour(gen_fsm).
+-include_lib("erlv8/include/erlv8.hrl").
+
 
 %% API
 -export([start_link/2, start_link/3]).
@@ -11,7 +13,7 @@
 
 -define(SERVER, ?MODULE).
 
--record(state, { prompt, im, expr = [], vm }).
+-record(state, { prompt, im, expr = [], vm, ctx }).
 
 %%%===================================================================
 %%% API
@@ -57,7 +59,18 @@ init([Prompt, InteractionModule, VM]) ->
 init([Prompt, InteractionModule, VM, NextState]) ->
 	link(VM),
 	gen_fsm:send_event(self(),read),
-	{ok, NextState, #state{ prompt = Prompt, im = InteractionModule, vm = VM}}.
+	Ctx = erlv8_context:new(VM),
+	CtxGlobal = erlv8_context:global(Ctx),
+	Global = erlv8_vm:global(VM),
+	lists:foreach(fun({"exports",_}) ->
+						  ignore;
+					 ({K,V}) ->
+						  CtxGlobal:set_value(K,V)
+				  end, Global:proplist()),
+	CtxGlobal:set_value("module",?V8Obj([{"exports", Global:get_value("exports")}])),
+	Module = CtxGlobal:get_value("module"),
+	Module:set_value("id","repl",[readonly,dontdelete]),
+	{ok, NextState, #state{ prompt = Prompt, im = InteractionModule, vm = VM, ctx = Ctx}}.
 
 %%--------------------------------------------------------------------
 %% @private
@@ -74,10 +87,10 @@ init([Prompt, InteractionModule, VM, NextState]) ->
 %%                   {stop, Reason, NewState}
 %% @end
 %%--------------------------------------------------------------------
-ready(read, #state{ prompt = Prompt, im = IM, vm = VM } = State) ->
+ready(read, #state{ prompt = Prompt, im = IM, vm = VM, ctx = Ctx } = State) ->
 	Expr = IM:read(Prompt),
 	Self = self(),
-	spawn(fun () -> gen_fsm:send_event(Self, {result, erlv8_vm:run(VM, erlv8_context:get(VM), Expr,{"console",0,0})}) end),
+	spawn(fun () -> gen_fsm:send_event(Self, {result, erlv8_vm:run(VM, Ctx, Expr,{"console",0,0})}) end),
 	{next_state, print, State#state{ expr = Expr }}.
 
 %% ready({result,_}=_Evt,State) ->
