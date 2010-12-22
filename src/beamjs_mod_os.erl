@@ -9,7 +9,12 @@ init(_VM) ->
 	ok.
 
 exports(_VM) ->
-	?V8Obj([
+	?V8Obj([	{"__doc__", "Operating System Specific Functions\n\n"
+				"The functions in this module are operating system specific."
+				" Careless use of these functions will result in programs that"
+				"will only run on a specific platform. On the other hand, with"
+				"careful use these functions can be of help in enabling a program to run on most platforms."
+			},
 			{"cmd", erlv8_fun:new(fun cmd/2,
 					?V8Obj([{"__doc__",
 						"`cmd(name)` -> String\n\n"

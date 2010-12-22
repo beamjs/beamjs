@@ -12,39 +12,39 @@ exports(VM) ->
  	Obj = erlv8_vm:taint(VM,
 						 ?V8Obj([{"Mailbox", erlv8_fun:new(fun new_mailbox/2,
 														   ?V8Obj([{"__doc__",
-																	"A constructor for Mailbox, an [EventEmitter](/events/EventEmitter) that emits a single message *message(Message)* for each received message.\n\n"
+																	"A constructor for `Mailbox`, an [EventEmitter](/events/EventEmitter) that emits a single message `message(Message)` for each received message.\n\n"
 																	"#### Registers unnamed mailbox\n\n"
-																	"<code>new Mailbox()</code>\n\n"
+																	"    new Mailbox()\n\n"
 																	"#### Registers a local named mailbox:\n\n"
-																	"<code>new Mailbox(name)</code>\n\n"
+																	"    new Mailbox(name)\n\n"
 																	"where *name* is a string\n\n"
 																	"#### Registers a global named mailbox:\n\n"
-																	"<code>new Mailbox({global: name})</code>\n\n"
+																	"    new Mailbox({global: name})\n\n"
 																	"where *name* is an expression\n\n"
 																	"### Example\n\n"
-																	"<code>var mbox = new (require('messaging').Mailbox)();\n\n"
-																	"mbox.on(\"message\",function (msg) { ...});</code>\n\n"}]))},
+																	"    var mbox = new (require('messaging').Mailbox)();\n"
+																	"    mbox.on(\"message\",function (msg) { ... });\n"}]))},
 								 {"send", erlv8_fun:new(fun send/2,
 														?V8Obj([{"__doc__",
 																 "Sends a message.\n\n"
-																 "<code>require('messaging').send(mbox,message);</code>\n\n"
+																 "    require('messaging').send(mbox,message);\n"
 																 "where *message* is an expression and *mbox* is one of the following:\n\n"
-																 "* A string containing a local named mailbox name\n\n"
-																 "* An object with *global* property that contains a global named mailbox name\n\n"
-																 "* A *pid* value (normally returned from Erlang)\n\n"
-																 "* Mailbox object (edge case as it will be more convenient to talk to Mailbox object direcly, using methods or EventEmitter events\n\n"
-																 "### Examples\n\n"
-																 "#### Local named mailbox\n\n"
-																 "<code>var mbox = new (require('messaging').Mailbox)('my_mbox');\n\n"
-																 "require('messaging').send('my_mbox', 'Hello');</code>\n\n"
-																 "#### Global named mailbox\n\n"
-																 "<code>var mbox = new (require('messaging').Mailbox)({global: 'my_mbox'});\n\n"
-																 "require('messaging').send({global: 'my_mbox'}, 'Hello');</code>\n\n"
+																 "* A string containing a local named mailbox name\n"
+																 "* An object with *global* property that contains a global named mailbox name\n"
+																 "* A *pid* value (normally returned from Erlang)\n"
+																 "* Mailbox object (edge case as it will be more convenient to talk to Mailbox object direcly, using methods or EventEmitter events\n"
+																 "### Examples\n"
+																 "#### Local named mailbox\n"
+																 "    var mbox = new (require('messaging').Mailbox)('my_mbox');\n"
+																 "    require('messaging').send('my_mbox', 'Hello');\n"
+																 "#### Global named mailbox\n"
+																 "    var mbox = new (require('messaging').Mailbox)({global: 'my_mbox'});\n"
+																 "    require('messaging').send({global: 'my_mbox'}, 'Hello');</code>\n"
 																 "#### Pid\n\n"
-																 "<code>var pid = someFunction();\n\n"
-																 "require('messaging').send(pid, 'Hello');</code>\n\n"
-																 "#### Mailbox object\n\n"
-																 "<code>require('messaging').send(mbox, 'Hello');</code>\n\n"}]))},
+																 "    var pid = someFunction();\n"
+																 "    require('messaging').send(pid, 'Hello');\n"
+																 "#### Mailbox object\n"
+																 "    require('messaging').send(mbox, 'Hello');\n"}]))},
 								 {"__doc__", 
 								  "Messaging exposes basic communication API provided by Erlang.\n\n"
 								  "<code>require('messaging')</code>"}])),
