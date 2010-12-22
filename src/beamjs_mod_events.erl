@@ -179,7 +179,7 @@ call_if_present(Args, {_, This, Event, Listener}=State) ->
 		[] ->
 			remove_handler;
 		_ ->
-			spawn(fun () -> Listener:call(Args) end),
+			Listener:call(Args),
 			{ok, State}
 	end.
 
