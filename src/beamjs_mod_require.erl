@@ -92,6 +92,8 @@ require_file(#erlv8_fun_invocation{ vm = VM } = Invocation, Filename) ->
 										  ignore;
 									  ({"__filename",_}) ->
 										  ignore;
+									  ({"module",_}) ->
+										  ignore;
 									  ({K,V}) ->
 										  Global:set_value(K,V)
 								  end,  NewGlobal:proplist()),
