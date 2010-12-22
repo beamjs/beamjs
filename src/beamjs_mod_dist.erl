@@ -9,7 +9,8 @@ init(_VM) ->
 
 exports(_VM) ->
  	?V8Obj([{"node", fun node/2},
-			{"ping", fun ping/2},
+			{"ping", erlv8_fun:new(fun ping/2, ?V8Obj([{"__doc__", "Tries to set up a connection to Node.
+								Returns `false` if it fails, or `true` if it is successful."}]))},
 			{"localhost", erlv8_fun:new(fun localhost/2, ?V8Obj([{"__doc__",
 							"Returns the name of the localhost. If beamjs was started with
 							the -name command line flag, Name is the fully qualified name."}]))},
