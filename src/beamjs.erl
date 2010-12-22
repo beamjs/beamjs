@@ -68,6 +68,10 @@ args(VM,load) ->
 			lists:foreach(fun (File) ->
 								  Global = erlv8_vm:global(VM),
 								  Require = Global:get_value("require"),
+								  Global:set_value("module",?V8Obj([])),
+								  Module = Global:get_value("module"),
+								  Module:set_value("id",File,[dontdelete,readonly]),
+								  Require:set_value("main",Module),
 								  case Require:call([File]) of
 									  {throw, {error, #erlv8_object{}=E}} ->
 										  io:format("~s~n",[beamjs_js_formatter:format_exception(VM,E)]);

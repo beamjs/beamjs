@@ -81,7 +81,6 @@ require_file(#erlv8_fun_invocation{ vm = VM } = Invocation, Filename) ->
 													"Dependency cycle detected while attempting to load '~s' from '~s'",
 													[Filename, ModuleId]))}};
 				[{Filename, Exports}] ->
-					io:format("cached already: ~p~n",[Exports]),
 					Exports;
 				[] ->
 					NewCtx = erlv8_context:new(VM),
@@ -94,7 +93,12 @@ require_file(#erlv8_fun_invocation{ vm = VM } = Invocation, Filename) ->
 					lists:foreach(fun ({K,V}) ->
 										  NewRequire:set_value(K,V)
 								  end,  Require:proplist()),
-					NewGlobal:set_value("module",?V8Obj([])),
+					case Global:get_value("exports") of
+						undefined ->
+							NewGlobal:set_value("module",Global:get_value("module"));
+						_ ->
+							NewGlobal:set_value("module",?V8Obj([]))
+					end,
 					Module = NewGlobal:get_value("module"),
 					Module:set_value("id", Filename, [dontdelete,readonly]),
 					NewGlobal:set_value("exports",?V8Obj([])),
