@@ -12,13 +12,15 @@ exports(VM) ->
 	Paths = erlv8_vm:taint(VM,?V8Arr([Cwd])),
 	Paths:set_value("__doc__","Array of paths where require() will be looking for modules"),	
 	erlv8_fun:new(fun require/2,?V8Obj([
-										{"__doc__", 
-										 "*require* provides a way to load another javascript modules. Not fully compatible with [CommonJS Modules/1.1](http://wiki.commonjs.org/wiki/Modules/1.1) yet, "
-										 "but eventually [will be](https://github.com/beamjs/beamjs/issues/issue/3)." ++ [10] ++
-											 "<h3>Synopsis</h3>"
-										 "require(ModuleId)"
-										},
-										{"paths", Paths}])).
+				{"__doc__",
+					"`require()` provides a way to load another javascript modules. Not fully compatible with [CommonJS Modules/1.1](http://wiki.commonjs.org/wiki/Modules/1.1) yet, "
+					"but eventually [will be](https://github.com/beamjs/beamjs/issues/issue/3)." ++ [10] ++
+					"### Synopsis\n"
+					"    "
+					"    require(ModuleId)"
+					"    "
+				},
+				{"paths", Paths}])).
 
 
 require(#erlv8_fun_invocation{ vm = VM } = Invocation, [Filename]) ->
