@@ -10,6 +10,9 @@ init(_VM) ->
 exports(_VM) ->
  	?V8Obj([{"node", fun node/2},
 			{"ping", fun ping/2},
+			{"localhost", erlv8_fun:new(fun localhost/2, ?V8Obj([{"__doc__",
+							"Returns the name of the localhost. If beamjs was started with
+							the -name command line flag, Name is the fully qualified name."}]))},
 			{"nodes", fun nodes/2}]).
 
 
@@ -24,6 +27,9 @@ ping(#erlv8_fun_invocation{},[Node]) when is_list(Node) ->
 		pang ->
 			false
 	end.
+
+localhost(#erlv8_fun_invocation{}, []) ->
+	net_adm:localhost().
 
 nodes(#erlv8_fun_invocation{},[]) ->
 	?V8Arr(nodes()).
