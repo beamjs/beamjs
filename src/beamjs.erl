@@ -1,5 +1,5 @@
 -module(beamjs).
-
+-include_lib("erlv8/include/erlv8.hrl").
 -export([start/0,stop/0,main/0,load_default_mods/1]).
 
 start() ->
@@ -68,7 +68,12 @@ args(VM,load) ->
 			lists:foreach(fun (File) ->
 								  Global = erlv8_vm:global(VM),
 								  Require = Global:get_value("require"),
-								  Require:call([File])
+								  case Require:call([File]) of
+									  {throw, {error, #erlv8_object{}=E}} ->
+										  io:format("~s~n",[beamjs_js_formatter:format_exception(VM,E)]);
+									  _ ->
+										  ignore
+								  end
 						  end, Files);
 		_ ->
 			false
