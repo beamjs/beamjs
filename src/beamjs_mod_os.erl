@@ -10,6 +10,10 @@ init(_VM) ->
 
 exports(_VM) ->
 	?V8Obj([
+			{"cmd", erlv8_fun:new(fun cmd/2, ?V8Obj(["__doc__",
+						"<code>cmd(name)</code> -> String\n\n"
+						"Executes Command in a command shell of the target OS,
+						 captures the standard output of the command and returns this result as a string."]))},
 			{"getenv", erlv8_fun:new(fun getenv/2, ?V8Obj(["__doc__",
 						"<code>getenv(varname)</code> -> String\n\n"
 						"Returns the Value of the environment variable VarName.\n\n"
@@ -24,6 +28,9 @@ exports(_VM) ->
 						"<code>version()</code> -> [2,6,37] \n\n"
 						"Returns the Osfamily and, in some cases, Osname of the current operating system."]))}
 	]).
+
+cmd(#erlv8_fun_invocation{},[Command]) when is_list(Command) ->
+	os:cmd(Command).
 
 getenv(#erlv8_fun_invocation{},[VarName]) when is_list(VarName) ->
 	os:getenv(VarName).
