@@ -14,7 +14,6 @@
   {env, [
 		 {default_mods,
 		  [
-		   {exports, beamjs_mod_exports},
 		   {require, beamjs_mod_require},
 		   {console, beamjs_mod_console}		   
 		  ]
@@ -28,7 +27,8 @@
 		   {"messaging", beamjs_mod_messaging},
 		   {"dist", beamjs_mod_dist},
 		   {"fs", beamjs_mod_fs},
-		   {"os", beamjs_mod_os}
+		   {"os", beamjs_mod_os},
+		   {"assert", beamjs_mod_assert}
 		  ]
 		 }
 		]}
