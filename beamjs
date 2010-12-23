@@ -1,3 +1,0 @@
-#! /bin/sh
-DIRNAME=`dirname $0`
-exec `which rlwrap` erl -noshell -pa $DIRNAME/ebin $DIRNAME/deps/erlv8/ebin -s beamjs main $*
