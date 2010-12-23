@@ -26,7 +26,18 @@ exports(VM) ->
 			{"version", Version},
 			{"reload", fun reload/2},
 			{"bundles",
-			 ?V8Obj([{"loaded", fun loaded/2},
+			 ?V8Obj([{"__doc__",                
+					  "Bundle is a set of modules (available either directly or through ```require()```). Main idea behind bundles "
+					  "is to enable higher modularity of Beam.js base modules one might want to use. For example, *erlang* bundle "
+					  "provides modules allowing JavaScript to use Erlang components such as messaging, global groups, etc.\n\n"
+					  "Using bundles is quite trivial. You have two options:\n\n"
+					  "* Command line: use flag -bundles to enlist any number of bundles you wish to load:\n\n" 
+					  "      ```./beamjs -bundles node_compat erlang```\n\n"
+					  "* Runtime: use <a href=\"/default/beamjs/bundles\">beamjs.bundles</a>:\n\n\n\n"
+					  "         beamjs.bundles.loaded(); // List of currently loaded bundles\n"
+					  "         beamjs.bundles.load('node_compat','erlang'[,...]); // Load bundles\n"
+					  "         beamjs.bundles.unload('node_compat'[,...]); // Unload bundles\n"},
+					 {"loaded", fun loaded/2},
 					 {"unload", fun unload/2},
 					 {"load", fun load/2}])}]).
 
