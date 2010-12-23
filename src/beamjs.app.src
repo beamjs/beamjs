@@ -28,7 +28,6 @@
 		   {"dist", beamjs_mod_dist},
 		   {"fs", beamjs_mod_fs},
 		   {"os", beamjs_mod_os},
-		   {"assert", beamjs_mod_assert},
 		   {"test", beamjs_mod_test}
 		  ]
 		 }
