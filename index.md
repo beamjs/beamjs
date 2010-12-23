@@ -7,7 +7,7 @@ Beam.js is a modular JavaScript VM engine built on top of [erlv8](https://github
 of their robust architectures. Possibilities are endless.
 
 <center>
-	<img src="https://img.skitch.com/20101223-d2cd4ut44e1xbksyu7fhqbqew8.jpg" />
+	<img src="https://img.skitch.com/20101223-pkja5jxng32dqpgmbyq64d4py.jpg" />
 </center>
 
 Resources
