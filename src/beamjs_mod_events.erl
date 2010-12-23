@@ -208,7 +208,7 @@ one_listener_test() ->
 	beamjs:stop(), erlv8:stop().
 
 once_listener_test() ->
-	erlv8:start(),
+	erlv8:start(), beamjs:start(),
 	{ok, VM} = erlv8_vm:start(),
 	beamjs:set_bundles([node_compat,erlang]),
 	beamjs:load_default_mods(VM),
