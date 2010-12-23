@@ -162,7 +162,7 @@ main() ->
 			ok;
 		false ->
 			Global = erlv8_vm:global(VM),
-			Global:set_value("module",?V8Obj([{"exports", ?V8Obj([])}])),
+			Global:set_value("module",?V8Obj([{"exports", beamjs_mod_repl:exports(VM)}])),
 			Module = Global:get_value("module"),
 			Module:set_value("id","repl",[readonly,dontdelete]),
 			Require = Global:get_value("require"),
