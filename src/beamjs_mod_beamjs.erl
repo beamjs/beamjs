@@ -56,8 +56,9 @@ unload(#erlv8_fun_invocation{},Bundles) ->
 	beamjs:set_bundles(beamjs:bundles() -- lists:map(fun list_to_atom/1, Bundles)),
 	?V8Arr(beamjs:bundles()).
 
-load(#erlv8_fun_invocation{},Bundles) ->
+load(#erlv8_fun_invocation{ vm = VM},Bundles) ->
 	beamjs:set_bundles(beamjs:bundles() ++ lists:map(fun list_to_atom/1, Bundles)),
+	beamjs:load_default_mods(VM),
 	?V8Arr(beamjs:bundles()).
 
 vm_constructor(#erlv8_fun_invocation{}, []) ->
