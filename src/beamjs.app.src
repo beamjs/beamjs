@@ -1,7 +1,7 @@
 {application, beamjs,
  [
   {description, "beam.js"},
-  {vsn, "0.0.1 (%sha%)"},
+  {vsn, "0.0.2 (%sha%)"},
   {registered, []},
   {applications, [
 				  erlv8,
