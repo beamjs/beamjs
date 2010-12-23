@@ -10,7 +10,7 @@ init(_VM) ->
 exports(_VM) ->
 	?V8Obj([{"run", fun run/2}]).
 
-run(#erlv8_fun_invocation{}=I, [#erlv8_object{}=Tests]) ->
+run(#erlv8_fun_invocation{ vm = VM }=I, [#erlv8_object{}=Tests]) ->
 	lists:foreach(fun ({"test" ++ Name, #erlv8_fun{}=Test}) when length(Name) > 0 ->
 						  io:format("\e[0m~n Test: ~s~n",[Name]),
 						  case Test:call() of
@@ -19,7 +19,7 @@ run(#erlv8_fun_invocation{}=I, [#erlv8_object{}=Tests]) ->
 									  E when is_list(E) ->
 										  io:format("     \e[31mfailed: ~s\e[0m~n",[E]);
 									  {error, #erlv8_object{}=Exc} ->
-										  io:format("     \e[31mfailed: ~p\e[0m~n",[Exc:proplist()])
+										  io:format("     \e[31mfailed: ~s\e[0m~n",[beamjs_js_formatter:format(VM, Exc)])
 								  end;
 							  _ ->
 								  io:format("    \e[32mpassed\e[0m~n")

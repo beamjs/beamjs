@@ -15,6 +15,7 @@ exports(VM) ->
 			{"strictEqual", fun assert_strictEqual/2},
 			{"notEqual", fun assert_notEqual/2},
 			{"notStrictEqual", fun assert_notStrictEqual/2},
+			{"deepEqual", fun assert_strictEqual/2},
 			{"ok", fun assert_ok/2},
 			{"throws", fun assert_throws/2}]).
 
@@ -26,7 +27,14 @@ new_AssertionError(#erlv8_fun_invocation{ this = This }=I, [#erlv8_object{}=Opti
 			This:set_value("message",Options:get_value("message")),
 			This:set_value("actual",Options:get_value("actual")),
 			This:set_value("expected",Options:get_value("expected"))
-	end.
+	end;
+
+new_AssertionError(#erlv8_fun_invocation{ vm = VM }=I, [Message]) when is_list(Message) ->
+	new_AssertionError(I, [erlv8_vm:taint(VM,?V8Obj([{"message", Message}]))]);
+	
+new_AssertionError(#erlv8_fun_invocation{}=I, []) ->
+	new_AssertionError(I, [""]).
+
 
 assert_equal(#erlv8_fun_invocation{ vm = VM }, [Actual, Expected, Message]) ->
 	Equals = 
@@ -133,7 +141,7 @@ assert_notStrictEqual(#erlv8_fun_invocation{}=I, [Actual, Expected]) ->
 	assert_notStrictEqual(I,[Actual, Expected,""]).
 
 
-assert_ok(#erlv8_fun_invocation{ vm = VM }, [Guard, Message]) ->
+assert_ok(#erlv8_fun_invocation{ vm = VM }, [Guard, Message|_]) ->
 	AE = erlv8_vm:retr(VM,{?MODULE,'AssertionError'}),
 	Exception = AE:instantiate([?V8Obj([{"actual", Guard}, 
 										{"expected", true},
