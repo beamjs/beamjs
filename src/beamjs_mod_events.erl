@@ -21,9 +21,12 @@ init(_VM) -> %% erlv8_module
 	ok.
 
 	   
-exports(_VM) ->
-	?V8Obj([{"EventEmitter", erlv8_fun:new(fun new_event_emitter/2,
-										   ?V8Obj([{"__doc__","Node.js-like EventEmitter API for gen_event. Read more on EventEmitter at [node.js documentation](http://nodejs.org/docs/v0.3.2/api/events.html)"}]))}]).
+exports(VM) ->
+	EventEmitter = erlv8_vm:taint(VM,erlv8_fun:new(fun new_event_emitter/2,
+												   ?V8Obj([{"__doc__",
+															"Node.js-like EventEmitter API for gen_event. Read more on EventEmitter at [node.js documentation](http://nodejs.org/docs/v0.3.2/api/events.html)"}]))),
+	EventEmitter:set_value("prototype",prototype_EventEmitter()),
+	?V8Obj([{"EventEmitter", EventEmitter}]).
 
 												   
 
@@ -37,7 +40,6 @@ prototype_EventEmitter() ->
 			{"removeAllListeners", fun remove_all_listeners/2}]).
 
 new_event_emitter(#erlv8_fun_invocation{ this = This },[]) ->
-	This:set_prototype(prototype_EventEmitter()), %% FIXME: not the best place for it
 	{ok, Pid} = gen_event:start(), %% not sure if we want start or start_link here
 	This:set_hidden_value("eventManager", Pid),
 	This:set_hidden_value("_listeners",?V8Obj([])),
