@@ -3,7 +3,8 @@ layout: default
 title: "About"
 ---
 
-Beam.js is a modular JavaScript VM engine built on top of [erlv8](https://github.com/beamjs/erlv8/wiki), it provides several things not available in erlv8, such as REPL, require(), exports and others.
+Beam.js is a modular JavaScript VM engine built on top of [erlv8](https://github.com/beamjs/erlv8/wiki) that connects two powerful languages — JavaScript and Erlang. With Beam.js Javascript can piggy back on Erlang's solid distributed networking infrastructure as well as other powerful blocks. For Erlang users, it can provide a powerful way to describe top level business logic on top
+of their robust architectures. Possibilities are endless.
 
 Resources
 ---------
