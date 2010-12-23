@@ -49,7 +49,7 @@ exports(VM) ->
 								  "Messaging exposes basic communication API provided by Erlang.\n\n"
 								  "<code>require('messaging')</code>"}])),
 	Mailbox = Obj:get_value("Mailbox"),
-	Mailbox:set_prototype(beamjs_mod_events:prototype_EventEmitter()),
+	Mailbox:set_value("prototype",beamjs_mod_events:prototype_EventEmitter()),
 	Obj.
 
 	
@@ -64,14 +64,14 @@ new_mailbox(#erlv8_fun_invocation{ this = This }=I,[OptsOrName]) ->
 
 	EventEmitterCtor:call(This,[]),
 
-	Prototype = This:get_prototype(),
-	Prototype:set_prototype(beamjs_mod_events:prototype_EventEmitter()), %% FIXME?
 	Emitter = This:get_value("emit"),
 
 	Pid = spawn(fun () -> mailbox(This, Emitter) end),
 	This:set_hidden_value("mailboxServer", Pid),
 
 	case OptsOrName of
+		noname ->
+			skip;
 		Name when is_list(Name) ->
 			register(list_to_atom(Name), Pid), ok;
 		{erlv8_object,_,_} ->
