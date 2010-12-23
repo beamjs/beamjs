@@ -23,20 +23,14 @@ exports(VM) ->
 				},
 				{"paths", Paths}])).
 
-
 require(#erlv8_fun_invocation{ vm = VM } = Invocation, [Filename]) ->
 	case require_file(Invocation, Filename) of
 		{throw, E} ->
-			case application:get_env(beamjs,available_mods) of
-				{ok, Mods} ->
-					case proplists:get_value(Filename,Mods) of
-						undefined ->
-							{throw, E};
-						Mod -> %% it is an Erlang-implemented module
-							Mod:exports(VM)
-					end;
-				_ ->
-					{throw, E}
+			case proplists:get_value(Filename,beamjs:modules(available)) of
+				undefined ->
+					{throw, E};
+				Mod -> %% it is an Erlang-implemented module
+					Mod:exports(VM)
 			end;
 		Exports ->
 			Exports

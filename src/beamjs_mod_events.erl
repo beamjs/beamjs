@@ -188,11 +188,10 @@ call_if_present(Args, {_, This, Event, Listener}=State) ->
 -include_lib("eunit/include/eunit.hrl").
 -ifdef(TEST).
 one_listener_test() ->
-	erlv8:start(),
+	erlv8:start(), beamjs:start(),
 	{ok, VM} = erlv8_vm:start(),
-	erlv8_vm:register(VM,'require',beamjs_mod_require),
-	application:set_env(beamjs,available_mods,[{"events",?MODULE},
-											   {"messaging",beamjs_mod_messaging}]),
+	beamjs:set_bundles([node_compat,erlang]),
+	beamjs:load_default_mods(VM),
     Global = erlv8_vm:global(VM),
 	Global:set_value("reportTo",self()),
 	erlv8_vm:run(VM,
@@ -206,14 +205,13 @@ one_listener_test() ->
 		Other ->
 			error({bad_result, Other})
 	end,
-	erlv8:stop().
+	beamjs:stop(), erlv8:stop().
 
 once_listener_test() ->
 	erlv8:start(),
 	{ok, VM} = erlv8_vm:start(),
-	erlv8_vm:register(VM,'require',beamjs_mod_require),
-	application:set_env(beamjs,available_mods,[{"events",?MODULE},
-											   {"messaging",beamjs_mod_messaging}]),
+	beamjs:set_bundles([node_compat,erlang]),
+	beamjs:load_default_mods(VM),
     Global = erlv8_vm:global(VM),
 	Global:set_value("reportTo",self()),
 	erlv8_vm:run(VM,
@@ -224,7 +222,7 @@ once_listener_test() ->
 				 "emitter.emit('event');"
 				 "emitter.emit('event');"),
 	once_listener_test_loop(false),
-	erlv8:stop().
+	beamjs:stop(), erlv8:stop().
 
 once_listener_test_loop(F) ->
 	receive 
@@ -239,11 +237,10 @@ once_listener_test_loop(F) ->
 	end.
 
 two_listeners_test() ->
-	erlv8:start(),
+	erlv8:start(), beamjs:start(),
 	{ok, VM} = erlv8_vm:start(),
-	erlv8_vm:register(VM,'require',beamjs_mod_require),
-	application:set_env(beamjs,available_mods,[{"events",?MODULE},
-											   {"messaging",beamjs_mod_messaging}]),
+	beamjs:set_bundles([node_compat,erlang]),
+	beamjs:load_default_mods(VM),
     Global = erlv8_vm:global(VM),
 	Global:set_value("reportTo",self()),
 	erlv8_vm:run(VM,
@@ -254,7 +251,7 @@ two_listeners_test() ->
 				 "emitter.on('event', function() { root.i++; msg.send(reportTo, root.i); });"
 				 "emitter.emit('event',1);"),
 	two_listeners_test_loop(0),
-	erlv8:stop().
+	beamjs:stop(), erlv8:stop().
 
 two_listeners_test_loop(3) ->
 	error({bad_result,3});
@@ -269,11 +266,10 @@ two_listeners_test_loop(N) ->
 	end.
 
 new_listener_event_test() ->
-	erlv8:start(),
+	erlv8:start(), beamjs:start(),
 	{ok, VM} = erlv8_vm:start(),
-	erlv8_vm:register(VM,'require',beamjs_mod_require),
-	application:set_env(beamjs,available_mods,[{"events",?MODULE},
-											   {"messaging",beamjs_mod_messaging}]),
+	beamjs:set_bundles([node_compat,erlang]),
+	beamjs:load_default_mods(VM),
     Global = erlv8_vm:global(VM),
 	Global:set_value("reportTo",self()),
 	erlv8_vm:run(VM,
@@ -287,13 +283,13 @@ new_listener_event_test() ->
 			?assertEqual(true,Object:get_value("rightListener")),
 			?assertEqual("event",Object:get_value("event"))
 	end,
-	erlv8:stop().
+	beamjs:stop(), erlv8:stop().
 
 listener_removal_test() ->
-	erlv8:start(),
+	erlv8:start(), beamjs:start(),
 	{ok, VM} = erlv8_vm:start(),
-	erlv8_vm:register(VM,'require',beamjs_mod_require),
-	application:set_env(beamjs,available_mods,[{"events",?MODULE}]),
+	beamjs:set_bundles([node_compat,erlang]),
+	beamjs:load_default_mods(VM),
 	{ok, Arr} = erlv8_vm:run(VM,
 							 "var emitter = new (require('events').EventEmitter)();"
 							 "var root = {};"
@@ -306,13 +302,13 @@ listener_removal_test() ->
     Global = erlv8_vm:global(VM),
     Root = Global:get_value("root"),
 	?assertEqual(undefined,Root:get_value("value")),
-	erlv8:stop().
+	beamjs:stop(), erlv8:stop().
 
 event_listeners_removal_test() ->
-	erlv8:start(),
+	erlv8:start(), beamjs:start(),
 	{ok, VM} = erlv8_vm:start(),
-	erlv8_vm:register(VM,'require',beamjs_mod_require),
-	application:set_env(beamjs,available_mods,[{"events",?MODULE}]),
+	beamjs:set_bundles([node_compat,erlang]),
+	beamjs:load_default_mods(VM),
 	{ok, Arr} = erlv8_vm:run(VM,
 							 "var emitter = new (require('events').EventEmitter)();"
 							 "var root = {};"
@@ -325,14 +321,13 @@ event_listeners_removal_test() ->
     Global = erlv8_vm:global(VM),
     Root = Global:get_value("root"),
 	?assertEqual(undefined,Root:get_value("value")),
-	erlv8:stop().
+	beamjs:stop(), erlv8:stop().
 
 listeners_manual_removal_test() ->
-	erlv8:start(),
+	erlv8:start(), beamjs:start(),
 	{ok, VM} = erlv8_vm:start(),
-	erlv8_vm:register(VM,'require',beamjs_mod_require),
-	application:set_env(beamjs,available_mods,[{"events",?MODULE},
-											   {"messaging",beamjs_mod_messaging}]),
+	beamjs:set_bundles([node_compat,erlang]),
+	beamjs:load_default_mods(VM),
     Global = erlv8_vm:global(VM),
 	Global:set_value("reportTo",self()),
 	{ok, Listeners} = erlv8_vm:run(VM,
@@ -353,7 +348,7 @@ listeners_manual_removal_test() ->
 	Listeners:delete(0),
 	erlv8_vm:run(VM,"emitter.emit('event');"),
 	listeners_manual_removal_test_loop(false),
-	erlv8:stop().
+	beamjs:stop(), erlv8:stop().
 
 listeners_manual_removal_test_loop(F) ->
 	receive 
@@ -368,11 +363,10 @@ listeners_manual_removal_test_loop(F) ->
 	end.
 
 listeners_manual_addition_test() ->
-	erlv8:start(),
+	erlv8:start(), beamjs:start(),
 	{ok, VM} = erlv8_vm:start(),
-	erlv8_vm:register(VM,'require',beamjs_mod_require),
-	application:set_env(beamjs,available_mods,[{"events",?MODULE},
-											   {"messaging",beamjs_mod_messaging}]),
+	beamjs:set_bundles([node_compat,erlang]),
+	beamjs:load_default_mods(VM),
     Global = erlv8_vm:global(VM),
 	Global:set_value("reportTo",self()),
 	{ok, Listeners} = erlv8_vm:run(VM,
@@ -391,7 +385,7 @@ listeners_manual_addition_test() ->
 	Listeners:push(L2),
 	erlv8_vm:run(VM,"emitter.emit('event');"),
 	listeners_manual_addition_test_loop(0),
-	erlv8:stop().
+	beamjs:stop(), erlv8:stop().
 
 listeners_manual_addition_test_loop(N) ->
 	receive 
