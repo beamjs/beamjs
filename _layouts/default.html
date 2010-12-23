@@ -4,18 +4,25 @@ github_url: "https://github.com/beamjs/beamjs"
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-<title>Beam.js - {{ page.title }}</title>
-<link href='http://fonts.googleapis.com/css?family=Vollkorn' rel='stylesheet' type='text/css'>
-<link href='http://fonts.googleapis.com/css?family=Ubuntu' rel='stylesheet' type='text/css'>
-<link href='http://fonts.googleapis.com/css?family=Inconsolata' rel='stylesheet' type='text/css'>
-<link rel="stylesheet" href="/css/fonts.css" type="text/css" media="screen">
-<link rel="stylesheet" href="/css/main.css" type="text/css" media="screen">
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<title>Beam.js - {{ page.title }}</title>
+	<link href='http://fonts.googleapis.com/css?family=Vollkorn' rel='stylesheet' type='text/css'>
+	<link href='http://fonts.googleapis.com/css?family=Ubuntu' rel='stylesheet' type='text/css'>
+	<link href='http://fonts.googleapis.com/css?family=Inconsolata' rel='stylesheet' type='text/css'>
+	<link rel="stylesheet" href="/css/fonts.css" type="text/css" media="screen">
+	<link rel="stylesheet" href="/css/main.css" type="text/css" media="screen">
 </head>
 <body>
-{% if page.github_url != '' %}
-<a href="{{ page.github_url }}"><img style="position: absolute; top: 0; right: 0; border: 0;" src="http://s3.amazonaws.com/github/ribbons/forkme_right_white_ffffff.png" alt="Fork me on GitHub" /></a>
-{% endif %}
-{{ content }}
+	{% if page.github_url != '' %}
+	<a href="{{ page.github_url }}"><img style="position: absolute; top: 0; right: 0; border: 0;" src="http://s3.amazonaws.com/github/ribbons/forkme_right_white_ffffff.png" alt="Fork me on GitHub" /></a>
+	{% endif %}
+	<header>
+		<h1><a href="/">Beam.js</a></h1>
+	</header>
+	<div class="content-wrapper">
+		<section class="content">
+			{{ content }}
+		</section>
+	</div>
 </body>
 </html>
