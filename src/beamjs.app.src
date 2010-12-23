@@ -19,7 +19,7 @@
 			  [
 			   {require, beamjs_mod_require},
 			   {console, beamjs_mod_console},
-			   {'__bundles__', beamjs_mod_bundles}
+			   {beamjs, beamjs_mod_beamjs}
 			  ]},
 			 {available,
 			  [

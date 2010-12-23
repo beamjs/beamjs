@@ -1,4 +1,4 @@
--module(beamjs_mod_bundles).
+-module(beamjs_mod_beamjs).
 
 -behaviour(erlv8_module).
 
@@ -11,9 +11,10 @@ init(_VM) ->
 	ok.
 
 exports(_VM) ->
-	?V8Obj([{"loaded", fun loaded/2},
-			{"unload", fun unload/2},
-			{"load", fun load/2}]).
+	?V8Obj([{"bundles",
+			 ?V8Obj([{"loaded", fun loaded/2},
+					 {"unload", fun unload/2},
+					 {"load", fun load/2}])}]).
 
 
 loaded(#erlv8_fun_invocation{},[]) ->
