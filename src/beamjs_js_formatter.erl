@@ -5,7 +5,7 @@ format(_VM,Expr) when is_list(Expr) ->
 	lists:flatten(io_lib:format("~p",[Expr]));
 
 format(_VM,undefined) ->
-	"";
+	"undefined";
 
 format(VM,{erlv8_array, _, _}=A) ->
 	"[" ++ lists:flatten(string:join(lists:map(fun (I) ->
