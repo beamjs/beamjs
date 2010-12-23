@@ -40,6 +40,14 @@ load_default_mods(VM) ->
 						  erlv8_vm:register(VM,Name,Mod)
 				  end, modules(default)).
 
+args(preemption) ->
+	case init:get_argument(jspreemption) of
+		{ok, [[V|_]]} ->
+			application:set_env(erlv8, preemption_ms, list_to_integer(V));
+		_ ->
+			false
+	end;
+
 args(bundles) ->
 	case init:get_argument(bundles) of
 		{ok, [Bundles]} ->
@@ -146,6 +154,7 @@ main() ->
 			os:putenv("ERLV8_SO_PATH","./deps/erlv8/priv")
 	end,
 	erlv8:start(),
+	args(preemption),
 	start(),
 	{ok, VM} = erlv8_vm:start(),
 	args(bundles),
