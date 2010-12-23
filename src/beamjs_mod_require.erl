@@ -59,12 +59,13 @@ require_file(#erlv8_fun_invocation{ vm = VM } = Invocation, Filename) ->
 	Require = Global:get_value("require"),
 	RequireObject = Require:object(),
 	Paths = RequireObject:get_value("paths",erlv8_vm:taint(VM,?V8Arr(["."]))),
+	Dirname  = Global:get_value("__dirname"),
 	Sources = lists:filter(fun (not_found) -> 
 								 false;
 							 (_) ->
 								 true
 						 end,
-						 lists:map(fun (Path) -> file_reader(Path, Filename) end,Paths:list())),
+						 lists:map(fun (Path) -> file_reader(Path, Filename) end,[Dirname|Paths:list()])),
 	case Sources of 
 		[] ->
 			{throw, {error, lists:flatten(io_lib:format("Cannot find module '~s'",[Filename])) }};
@@ -93,6 +94,8 @@ require_file(#erlv8_fun_invocation{ vm = VM } = Invocation, Filename) ->
 					lists:foreach(fun ({K,V}) ->
 										  NewRequire:set_value(K,V)
 								  end,  Require:proplist()),
+					NewPaths = NewRequire:get_value("paths"),
+					NewPaths:unshift(Dirname),
 					case Global:get_value("exports") of
 						undefined ->
 							NewGlobal:set_value("module",Global:get_value("module"));
