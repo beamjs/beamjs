@@ -119,6 +119,12 @@ main() ->
 		true ->
 			ok;
 		false ->
+			Global = erlv8_vm:global(VM),
+			Global:set_value("module",?V8Obj([{"exports", ?V8Obj([])}])),
+			Module = Global:get_value("module"),
+			Module:set_value("id","repl",[readonly,dontdelete]),
+			Require = Global:get_value("require"),
+			Require:set_value("main",Module,[readonly,dontdelete]),
 			erlv8_vm:run(VM, erlv8_context:get(VM), ?REPL_START, {"main",0,0})
 	end,
 	erlang:halt().

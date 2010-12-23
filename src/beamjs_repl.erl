@@ -67,11 +67,6 @@ init([Prompt, InteractionModule, VM, NextState]) ->
 					 ({K,V}) ->
 						  CtxGlobal:set_value(K,V)
 				  end, Global:proplist()),
-	CtxGlobal:set_value("module",?V8Obj([{"exports", Global:get_value("exports")}])),
-	Module = CtxGlobal:get_value("module"),
-	Module:set_value("id","repl",[readonly,dontdelete]),
-	Require = CtxGlobal:get_value("require"),
-	Require:set_value("main",Module,[readonly,dontdelete]),
 	{ok, NextState, #state{ prompt = Prompt, im = InteractionModule, vm = VM, ctx = Ctx}}.
 
 %%--------------------------------------------------------------------
