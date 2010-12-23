@@ -39,7 +39,8 @@
 			[
 			 {available,
 			  [{"dist", beamjs_mod_dist},
-			   {"messaging", beamjs_mod_messaging}
+			   {"messaging", beamjs_mod_messaging},
+			   {"events", beamjs_mod_events}
 			  ]}
 			 ]},
 		   {stdlib,
