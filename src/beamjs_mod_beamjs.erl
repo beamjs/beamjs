@@ -8,7 +8,7 @@
 
 
 init(_VM) ->
-	reloader:start().
+	ok.
 
 exports(VM) ->
 	VMCtor = erlv8_vm:taint(VM, fun vm_constructor/2),
