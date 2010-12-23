@@ -25,7 +25,6 @@ exports(VM) ->
 	O = erlv8_vm:taint(VM,?V8Obj([{"EventEmitter", erlv8_fun:new(fun new_event_emitter/2,
 																 ?V8Obj([{"__doc__","Node.js-like EventEmitter API for gen_event. Read more on EventEmitter at [node.js documentation](http://nodejs.org/docs/v0.3.2/api/events.html)"}]))}])),
 	EE = O:get_value("EventEmitter"),
-	EE:set_prototype(prototype_EventEmitter()),
 	O.
 												   
 
