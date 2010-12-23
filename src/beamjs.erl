@@ -62,6 +62,19 @@ args(VM,default_mod) ->
 			false
 	end;
 
+args(VM, path) ->
+	case init:get_argument(jspath) of
+		{ok, [Paths]} ->
+			lists:foreach(fun (Path) ->
+								  Global = erlv8_vm:global(VM),
+								  Require = Global:get_value("require"),
+								  RPaths = Require:get_value("paths"),
+								  RPaths:unshift(Path)
+						  end, Paths);
+		_ -> 
+			false
+	end;
+			
 args(VM,load) ->
 	case init:get_argument(load) of
 		{ok, [Files]} ->
@@ -100,6 +113,7 @@ main() ->
 	args(mod),
 	args(VM,default_mod),
 	args(VM,jseval),
+	args(VM,path),
 	args(VM,load),
 	case NoRepl of
 		true ->
