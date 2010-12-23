@@ -52,7 +52,8 @@
 		   {commonjs,
 			[
 			 {available,
-			  [{"test", beamjs_mod_test}
+			  [{"test", beamjs_mod_test},
+			   {"assert", "lib_bundles/narwhal/assert"}
 			  ]}
 			 ]}
 		   
