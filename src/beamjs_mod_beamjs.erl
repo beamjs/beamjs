@@ -8,7 +8,7 @@
 
 
 init(_VM) ->
-	ok.
+	reloader:start().
 
 exports(VM) ->
 	VMCtor = erlv8_vm:taint(VM, fun vm_constructor/2),
@@ -19,7 +19,12 @@ exports(VM) ->
 	Current:set_hidden_value("VMServer",VM),
 
 	VMCtor:set_value("current",Current),
+
+	{beamjs,_,Version} = lists:keyfind(beamjs,1,application:which_applications()),
+
 	?V8Obj([{"VM", VMCtor},
+			{"version", Version},
+			{"reload", fun reload/2},
 			{"bundles",
 			 ?V8Obj([{"loaded", fun loaded/2},
 					 {"unload", fun unload/2},
@@ -97,3 +102,5 @@ vm_run_async(#erlv8_fun_invocation{ this = This }, [Code, #erlv8_fun{}=Callback]
 		  end),
 	ok.
 
+reload(#erlv8_fun_invocation{} = _Invocation, []) ->
+	?V8Arr(lists:map(fun ({_,_}=O) -> ?V8Obj([O]) end,reloader:reload_modules(reloader:all_changed()))).
