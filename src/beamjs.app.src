@@ -31,8 +31,8 @@
 			 {available,
 			  [{"events", beamjs_mod_events},
 			   {"sys", beamjs_mod_sys},
-			   {"util", beamjs_mod_util},
-			   {"fs", beamjs_mod_fs}
+			   {"fs", beamjs_mod_fs},
+			   {"util", "lib_bundles/node_compat/util"}
 			  ]}
 			 ]},
 		   {erlang,

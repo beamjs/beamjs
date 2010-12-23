@@ -29,8 +29,10 @@ require(#erlv8_fun_invocation{ vm = VM } = Invocation, [Filename]) ->
 			case proplists:get_value(Filename,beamjs:modules(available)) of
 				undefined ->
 					{throw, E};
-				Mod -> %% it is an Erlang-implemented module
-					Mod:exports(VM)
+				Mod when is_atom(Mod) -> %% it is an Erlang-implemented module
+					Mod:exports(VM);
+				Filename1 when is_list(Filename1) ->
+					require_file(Invocation, Filename1)
 			end;
 		Exports ->
 			Exports
