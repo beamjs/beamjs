@@ -30,7 +30,7 @@ require(#erlv8_fun_invocation{ vm = VM } = Invocation, [Filename]) ->
 				undefined ->
 					{throw, E};
 				Mod when is_atom(Mod) -> %% it is an Erlang-implemented module
-					Mod:exports(VM);
+					erlv8_vm:taint(VM, Mod:exports(VM));
 				Filename1 when is_list(Filename1) ->
 					require_file(Invocation, Filename1)
 			end;
