@@ -1,6 +1,6 @@
 #!/bin/bash
-
-RUNNER_SCRIPT_DIR=$(cd ${0%/*} && pwd)
+me=`readlink $0 || echo $0`
+RUNNER_SCRIPT_DIR=$(cd ${me%/*} && pwd)
 
 RUNNER_BASE_DIR=${RUNNER_SCRIPT_DIR%/*}
 RUNNER_ETC_DIR=$RUNNER_BASE_DIR/etc

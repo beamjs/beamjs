@@ -27,3 +27,10 @@ release: compile
 	@cp -R deps/erlv8 rel/apps/
 	@./rebar generate
 	@rm -rf rel/apps
+
+install: release
+	rm -rf /usr/local/lib/beamjs
+	cp -R rel/beamjs /usr/local/lib
+	rm -f /usr/local/bin/beamjs
+	ln -s /usr/local/lib/beamjs/bin/beamjs /usr/local/bin
+	@rm -rf rel/beamjs
