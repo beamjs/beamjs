@@ -32,7 +32,7 @@ exports(VM) ->
 					  "provides modules allowing JavaScript to use Erlang components such as messaging, global groups, etc.\n\n"
 					  "Using bundles is quite trivial. You have two options:\n\n"
 					  "* Command line: use flag -bundles to enlist any number of bundles you wish to load:\n\n" 
-					  "      ```./beamjs -bundles node_compat erlang```\n\n"
+					  "         ./beamjs -bundles node_compat erlang\n\n"
 					  "* Runtime: use <a href=\"/default/beamjs/bundles\">beamjs.bundles</a>:\n\n\n\n"
 					  "         beamjs.bundles.loaded(); // List of currently loaded bundles\n"
 					  "         beamjs.bundles.load('node_compat','erlang'[,...]); // Load bundles\n"
