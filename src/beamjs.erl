@@ -97,7 +97,12 @@ args(VM,bundles) ->
 			Global:set_value("module",?V8Obj([{"id","init"},{"exports", ?V8Obj([])}])),
 			lists:foreach(fun(Bundle) ->
 								  lists:foreach(fun({Name, Module}) ->
-														Global:set_value(Name, beamjs_mod_require:require(VM, Module))
+														case beamjs_mod_require:require(VM, Module) of
+															{throw, {error, #erlv8_object{}=E}} ->
+																io:format("~s~n",[beamjs_js_formatter:format_exception(VM,E)]);
+															Exports ->
+																Global:set_value(Name, Exports)
+														end
 												end,  modules(default, Bundle))
 						  end, AtomBundles);
 		_ ->
