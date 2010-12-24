@@ -53,25 +53,19 @@ exports(VM) ->
 	Obj.
 
 	
-new_mailbox(#erlv8_fun_invocation{}=I,[]) ->
-	new_mailbox(I,[noname]);
+new_mailbox(#erlv8_fun_invocation{}=I,[#erlv8_fun{}=Cb]) ->
+	new_mailbox(I,[noname, Cb]);
 
-new_mailbox(#erlv8_fun_invocation{ this = This }=I,[OptsOrName]) ->
-	Global = I:global(),
-	Require = Global:get_value("require"),
-	EventsMod = Require:call(["gen_event"]),
-	EventMgrCtor = EventsMod:get_value("Manager"),
+new_mailbox(#erlv8_fun_invocation{ this = This },[OptsOrName, #erlv8_fun{}=Cb]) ->
 
-	EventMgrCtor:call(This,[]),
-
-	Notify = This:get_value("notify"),
-
-	Pid = spawn(fun () -> mailbox(This, Notify) end),
+	Pid = spawn(fun () -> mailbox(This) end),
 	This:set_hidden_value("mailboxServer", Pid),
+
+	This:set_value("onMessage", Cb),
 
 	case OptsOrName of
 		noname ->
-			skip;
+			ok;
 		Name when is_list(Name) ->
 			register(list_to_atom(Name), Pid), ok;
 		{erlv8_object,_,_} ->
@@ -109,8 +103,11 @@ send(#erlv8_fun_invocation{},[{erlv8_object, _, _}=O,Data])  ->
 
 %% private
 
-mailbox(This, Notify) ->
-	receive Msg -> This:call(Notify, [Msg]) end, 
-	mailbox(This, Notify).
+mailbox(This) ->
+	receive Msg -> 
+			OnMessage = This:get_value("onMessage"),
+			This:call(OnMessage,[Msg])
+	end, 
+	mailbox(This).
 
 
