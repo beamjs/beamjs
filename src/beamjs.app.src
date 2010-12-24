@@ -40,7 +40,7 @@
 			 {available,
 			  [{"dist", beamjs_mod_dist},
 			   {"messaging", beamjs_mod_messaging},
-			   {"events", beamjs_mod_events}
+			   {"gen_event", beamjs_mod_gen_event}
 			  ]}
 			 ]},
 		   {stdlib,
