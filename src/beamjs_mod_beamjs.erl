@@ -36,7 +36,9 @@ exports(VM) ->
 					  "* Runtime: use <a href=\"/default/beamjs/bundles\">beamjs.bundles</a>:\n\n\n\n"
 					  "         beamjs.bundles.loaded(); // List of currently loaded bundles\n"
 					  "         beamjs.bundles.load('node_compat','erlang'[,...]); // Load bundles\n"
-					  "         beamjs.bundles.unload('node_compat'[,...]); // Unload bundles\n"},
+					  "         beamjs.bundles.unload('node_compat'[,...]); // Unload bundles\n"
+					  "         beamjs.bundles.with(['node_compat'[,...]], function () { ... }); // Load bundles only while callback is executing"
+					 },
 					 {"loaded", fun loaded/2},
 					 {"unload", fun unload/2},
 					 {"load", fun load/2},
