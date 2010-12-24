@@ -29,7 +29,8 @@
 		   {node_compat,
 			[
 			 {available,
-			  [{"events", beamjs_mod_events},
+			  [
+			   {"events", "lib_bundles/node_compat/events"},
 			   {"sys", beamjs_mod_sys},
 			   {"fs", beamjs_mod_fs},
 			   {"util", "lib_bundles/node_compat/util"}
