@@ -61,10 +61,13 @@ load(#erlv8_fun_invocation{},Bundles) ->
 	beamjs:set_bundles(beamjs:bundles() ++ lists:map(fun list_to_atom/1, Bundles)),
 	?V8Arr(beamjs:bundles()).
 
-with_bundles(#erlv8_fun_invocation{}=I,[#erlv8_array{}=Bundles, #erlv8_fun{}=Callback]) ->
-	load(I,Bundles:list()),
+with_bundles(#erlv8_fun_invocation{},[#erlv8_array{}=Bundles, #erlv8_fun{}=Callback]) ->
+	Loaded = beamjs:bundles(),
+	ToLoad = lists:map(fun list_to_atom/1, Bundles:list()),
+	ToUnload = ToLoad -- Loaded,
+	beamjs:set_bundles(beamjs:bundles() ++ ToLoad),
 	R = Callback:call(),
-	unload(I, Bundles:list()),
+	beamjs:set_bundles(beamjs:bundles() -- ToUnload),
 	R.
 
 vm_constructor(#erlv8_fun_invocation{}, []) ->
