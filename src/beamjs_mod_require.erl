@@ -24,8 +24,8 @@ exports(VM) ->
 				{"paths", Paths}])).
 
 require(VM, Filename) when is_pid(VM), is_atom(Filename) ->
-	Filename:exports(VM);
-require(VM, Filename) when is_pid(VM), is_list(Filename) ->
+	erlv8_vm:taint(VM, Filename:exports(VM));
+require(VM, Filename) when is_pid(VM) ->
 	{_, Ctx} = erlv8_context:get(VM),
 	require_fun(#erlv8_fun_invocation{ vm = VM, ctx = Ctx }, [Filename]).
 
@@ -39,7 +39,26 @@ require_fun(#erlv8_fun_invocation{ vm = VM } = Invocation, [Filename]) ->
 				Mod when is_atom(Mod) -> %% it is an Erlang-implemented module
 					erlv8_vm:taint(VM, Mod:exports(VM));
 				Filename1 when is_list(Filename1) ->
-					require_file(Invocation, Filename1)
+					require_file(Invocation, Filename1);
+				{join, Modules} ->
+					NewExports = erlv8_vm:taint(VM, ?V8Obj([])),
+					Throws = lists:filter(fun ({throw, _}) ->
+												  true;
+											  (_) ->
+												  false
+										  end,
+										  lists:map(fun (Module) ->
+															Exports = require(VM, Module),
+															lists:foreach(fun ({K,V}) ->
+																				  NewExports:set_value(K,V)
+																		  end, Exports:proplist())
+													end, Modules)),
+					case Throws of
+						[Throw|_] -> 
+							Throw;
+						_ ->
+							NewExports
+					end
 			end;
 		Exports ->
 			Exports
