@@ -37,6 +37,7 @@ set_bundles(Bundles) ->
 
 load_default_modules(VM) ->
 	Global = erlv8_vm:global(VM),
+	beamjs_mod_require:init(VM),
 	lists:foreach(fun({Name, Module}) ->
 						  Global:set_value(Name, beamjs_mod_require:require(VM, Module))
 				  end, modules(default, default)).
@@ -45,14 +46,6 @@ args(preemption) ->
 	case init:get_argument(jspreemption) of
 		{ok, [[V|_]]} ->
 			application:set_env(erlv8, preemption_ms, list_to_integer(V));
-		_ ->
-			false
-	end;
-
-args(bundles) ->
-	case init:get_argument(bundles) of
-		{ok, [Bundles]} ->
-			set_bundles(lists:map(fun list_to_atom/1,Bundles));
 		_ ->
 			false
 	end;
@@ -94,6 +87,22 @@ args({mod, Arg, Type}) ->
 args(mod) ->
 	args({mod, mod, available}).
 
+
+args(VM,bundles) ->
+	case init:get_argument(bundles) of
+		{ok, [Bundles]} ->
+			Global = erlv8_vm:global(VM),
+			AtomBundles = lists:map(fun list_to_atom/1,Bundles),
+			set_bundles(AtomBundles),
+			Global:set_value("module",?V8Obj([{"id","init"},{"exports", ?V8Obj([])}])),
+			lists:foreach(fun(Bundle) ->
+								  lists:foreach(fun({Name, Module}) ->
+														Global:set_value(Name, beamjs_mod_require:require(VM, Module))
+												end,  modules(default, Bundle))
+						  end, AtomBundles);
+		_ ->
+			false
+	end;
 
 args(VM,jseval) ->
 	case init:get_argument(jseval) of
@@ -159,7 +168,6 @@ main() ->
 	args(preemption),
 	start(),
 	{ok, VM} = erlv8_vm:start(),
-	args(bundles),
 	load_default_modules(VM),
 	NoRepl = args(norepl),
 	args(toolbar),
@@ -167,6 +175,7 @@ main() ->
 	args(VM,default_mod),
 	args(VM,jseval),
 	args(VM,path),
+	args(VM,bundles),
 	args(VM,load),
 	case NoRepl of
 		true ->

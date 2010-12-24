@@ -26,7 +26,8 @@ exports(VM) ->
 require(VM, Filename) when is_pid(VM), is_atom(Filename) ->
 	Filename:exports(VM);
 require(VM, Filename) when is_pid(VM), is_list(Filename) ->
-	require_fun(#erlv8_fun_invocation{ vm = VM }, [Filename]).
+	{_, Ctx} = erlv8_context:get(VM),
+	require_fun(#erlv8_fun_invocation{ vm = VM, ctx = Ctx }, [Filename]).
 
 
 require_fun(#erlv8_fun_invocation{ vm = VM } = Invocation, [Filename]) ->
@@ -96,7 +97,7 @@ require_file(#erlv8_fun_invocation{ vm = VM } = Invocation, Filename) ->
 					lists:foreach(fun ({K,V}) ->
 										  NewGlobal:set_value(K,V)
 								  end,  Global:proplist()),
-					NewGlobal:set_value("require",fun require/2),
+					NewGlobal:set_value("require",fun require_fun/2),
 					NewRequire = NewGlobal:get_value("require"),
 					lists:foreach(fun ({K,V}) ->
 										  NewRequire:set_value(K,V)
