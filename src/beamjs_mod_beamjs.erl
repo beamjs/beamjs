@@ -29,7 +29,7 @@ exports(VM) ->
 			 ?V8Obj([{"__doc__",                
 					  "Bundle is a set of modules (available either directly or through ```require()```). Main idea behind bundles "
 					  "is to enable higher modularity of Beam.js base modules one might want to use. For example, *erlang* bundle "
-					  "provides modules allowing JavaScript to use Erlang components such as messaging, global groups, etc.\n\n"
+					  "provides modules allowing JavaScript to use Erlang components such as messaging, global groups, etc. Think of bundles as a primitive packaging system for *base* modules.\n\n"
 					  "Using bundles is quite trivial. You have two options:\n\n"
 					  "* Command line: use flag -bundles to enlist any number of bundles you wish to load:\n\n" 
 					  "         ./beamjs -bundles node_compat erlang\n\n"
