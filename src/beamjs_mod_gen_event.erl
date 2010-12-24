@@ -37,7 +37,7 @@ prototype_Manager() ->
 
 prototype_Handler() ->
 	?V8Obj([
-			{"removeHandler", fun set_remove_handler/2}
+			{"RemoveHandler", ?V8Obj([])}
 		   ]).
 
 
@@ -87,20 +87,18 @@ notify(#erlv8_fun_invocation{ this = This },[Event]) ->
 	Pid = ?PID,
 	gen_event:notify(Pid, Event).
 
-set_remove_handler(#erlv8_fun_invocation{ this = This },[]) ->
-	This:set_hidden_value("remove_handler", true).
-
-
 %% gen_event
 handle_event(Event, #erlv8_object{} = Handler) ->
 	case Handler:get_value("onEvent") of
 		#erlv8_fun{}=F ->
-			Handler:call(F,[Event]),
-			RemoveHandler = Handler:get_hidden_value("remove_handler"),
-			Handler:set_hidden_value("remove_handler", undefined),
-			case RemoveHandler of
-				true ->
-					remove_handler;
+			case Handler:call(F,[Event]) of 
+				#erlv8_object{}=Result ->
+					case Result:equals(Handler:get_value("RemoveHandler")) of
+						true ->
+							remove_handler;
+						_ ->
+							{ok, Handler}
+					end;
 				_ ->
 					{ok, Handler}
 			end;
