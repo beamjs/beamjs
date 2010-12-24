@@ -39,7 +39,8 @@ exports(VM) ->
 					  "         beamjs.bundles.unload('node_compat'[,...]); // Unload bundles\n"},
 					 {"loaded", fun loaded/2},
 					 {"unload", fun unload/2},
-					 {"load", fun load/2}])}]).
+					 {"load", fun load/2},
+					 {"with", fun with_bundles/2}])}]).
 
 
 prototype_VM() ->
@@ -59,6 +60,12 @@ unload(#erlv8_fun_invocation{},Bundles) ->
 load(#erlv8_fun_invocation{},Bundles) ->
 	beamjs:set_bundles(beamjs:bundles() ++ lists:map(fun list_to_atom/1, Bundles)),
 	?V8Arr(beamjs:bundles()).
+
+with_bundles(#erlv8_fun_invocation{}=I,[#erlv8_array{}=Bundles, #erlv8_fun{}=Callback]) ->
+	load(I,Bundles:list()),
+	R = Callback:call(),
+	unload(I, Bundles:list()),
+	R.
 
 vm_constructor(#erlv8_fun_invocation{}, []) ->
 	ok.
