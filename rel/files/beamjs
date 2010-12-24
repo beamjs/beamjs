@@ -4,7 +4,7 @@ RUNNER_SCRIPT_DIR=$(cd ${0%/*} && pwd)
 
 RUNNER_BASE_DIR=${RUNNER_SCRIPT_DIR%/*}
 RUNNER_ETC_DIR=$RUNNER_BASE_DIR/etc
-RUNNER_LOG_DIR=$RUNNER_BASE_DIR/log
+RUNNER_LOG_DIR=~/.beamjs/log
 PIPE_DIR=/tmp/$RUNNER_BASE_DIR/
 RUNNER_USER=
 
@@ -21,17 +21,9 @@ mkdir -p $RUNNER_LOG_DIR
 
 # Extract the target node name from node.args
 NAME_ARG=`grep -e '-[s]*name' $RUNNER_ETC_DIR/vm.args`
-if [ -z "$NAME_ARG" ]; then
-    echo "vm.args needs to have either -name or -sname parameter."
-    exit 1
-fi
 
 # Extract the target cookie
 COOKIE_ARG=`grep -e '-setcookie' $RUNNER_ETC_DIR/vm.args`
-if [ -z "$COOKIE_ARG" ]; then
-    echo "vm.args needs to have a -setcookie parameter."
-    exit 1
-fi
 
 # Identify the script name
 SCRIPT=`basename $0`
@@ -48,4 +40,4 @@ ROOTDIR=$RUNNER_BASE_DIR
 export BINDIR=$ROOTDIR/erts-$ERTS_VSN/bin
 EMU=beam
 PROGNAME=`echo $0 | sed 's/.*\\///'`
-$BINDIR/erlexec -boot $RUNNER_BASE_DIR/releases/$APP_VSN/$SCRIPT -interactive -config $RUNNER_ETC_DIR/app.config -args_file $RUNNER_ETC_DIR/vm.args -- ${1+"$@"} 
+exec `which rlwrap` $BINDIR/erlexec -boot $RUNNER_BASE_DIR/releases/$APP_VSN/$SCRIPT -interactive -config $RUNNER_ETC_DIR/app.config -args_file $RUNNER_ETC_DIR/vm.args -- ${1+"$@"} 

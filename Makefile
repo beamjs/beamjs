@@ -20,4 +20,10 @@ compile: dependencies
 	@cat ebin/beamjs.app | sed s/%sha%/`git log -1 --pretty=format:%h`/ > ebin/beamjs.app
 
 release: compile
+	@rm -rf rel/beamjs
+	@rm -rf rel/apps
+	@mkdir -p rel/apps/beamjs
+	@cp -R ebin rel/apps/beamjs
+	@cp -R deps/erlv8 rel/apps/
 	@./rebar generate
+	@rm -rf rel/apps
