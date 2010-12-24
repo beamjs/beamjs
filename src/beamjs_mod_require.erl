@@ -1,5 +1,5 @@
 -module(beamjs_mod_require).
--export([exports/1,init/1]).
+-export([exports/1,init/1, require/2]).
 
 -behaviour(erlv8_module).
 -include_lib("erlv8/include/erlv8.hrl").
@@ -12,7 +12,7 @@ exports(VM) ->
 	{ok, Cwd} = file:get_cwd(),
 	Paths = erlv8_vm:taint(VM,?V8Arr([Cwd])),
 	Paths:set_value("__doc__","Array of paths where require() will be looking for modules"),	
-	erlv8_fun:new(fun require/2,?V8Obj([
+	erlv8_fun:new(fun require_fun/2,?V8Obj([
 				{"__doc__",
 					"`require()` provides a way to load another javascript modules. Not fully compatible with [CommonJS Modules/1.1](http://wiki.commonjs.org/wiki/Modules/1.1) yet, "
 					"but eventually [will be](https://github.com/beamjs/beamjs/issues/issue/3)." ++ [10] ++
@@ -23,7 +23,13 @@ exports(VM) ->
 				},
 				{"paths", Paths}])).
 
-require(#erlv8_fun_invocation{ vm = VM } = Invocation, [Filename]) ->
+require(VM, Filename) when is_pid(VM), is_atom(Filename) ->
+	Filename:exports(VM);
+require(VM, Filename) when is_pid(VM), is_list(Filename) ->
+	require_fun(#erlv8_fun_invocation{ vm = VM }, [Filename]).
+
+
+require_fun(#erlv8_fun_invocation{ vm = VM } = Invocation, [Filename]) ->
 	case require_file(Invocation, Filename) of
 		{throw, E} ->
 			case proplists:get_value(Filename,beamjs:modules(available)) of

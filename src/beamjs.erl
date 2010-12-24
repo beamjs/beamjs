@@ -36,8 +36,9 @@ set_bundles(Bundles) ->
 %%%
 
 load_default_modules(VM) ->
-	lists:foreach(fun({Name,Mod}) ->
-						  erlv8_vm:register(VM,Name,Mod)
+	Global = erlv8_vm:global(VM),
+	lists:foreach(fun({Name, Module}) ->
+						  Global:set_value(Name, beamjs_mod_require:require(VM, Module))
 				  end, modules(default, default)).
 
 args(preemption) ->
@@ -105,8 +106,9 @@ args(VM,jseval) ->
 args(VM,default_mod) ->
 	args({mod, default_mod, default}),
 	case init:get_argument(default_mod) of
-		{ok, [[Alias, Mod]]} ->
-			erlv8_vm:register(VM,Alias,list_to_atom(Mod));
+		{ok, [[Name, Module]]} ->
+			Global = erlv8_vm:global(VM),
+			Global:set_value(Name, beamjs_mod_require:require(VM, list_to_atom(Module)));
 		_ ->
 			false
 	end;
