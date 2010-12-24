@@ -2,7 +2,7 @@
 -include_lib("erlv8/include/erlv8.hrl").
 -export([start/0,stop/0,main/0,
 		 bundles/0, set_bundles/1, modules/1, modules/2,
-		 load_default_mods/1]).
+		 load_default_modules/1]).
 
 start() ->
 	application:start(beamjs).
@@ -35,10 +35,10 @@ set_bundles(Bundles) ->
 
 %%%
 
-load_default_mods(VM) ->
+load_default_modules(VM) ->
 	lists:foreach(fun({Name,Mod}) ->
 						  erlv8_vm:register(VM,Name,Mod)
-				  end, modules(default)).
+				  end, modules(default, default)).
 
 args(preemption) ->
 	case init:get_argument(jspreemption) of
@@ -158,7 +158,7 @@ main() ->
 	start(),
 	{ok, VM} = erlv8_vm:start(),
 	args(bundles),
-	load_default_mods(VM),
+	load_default_modules(VM),
 	NoRepl = args(norepl),
 	args(toolbar),
 	args(mod),
