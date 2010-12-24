@@ -34,3 +34,8 @@ install: release
 	rm -f /usr/local/bin/beamjs
 	ln -s /usr/local/lib/beamjs/bin/beamjs /usr/local/bin
 	@rm -rf rel/beamjs
+
+archive: release
+	@tar c -C rel beamjs > beamjs.tar
+	@gzip beamjs.tar 
+	@rm -rf rel/beamjs
