@@ -49,7 +49,7 @@ exports(VM) ->
 								  "Messaging exposes basic communication API provided by Erlang.\n\n"
 								  "<code>require('messaging')</code>"}])),
 	Mailbox = Obj:get_value("Mailbox"),
-	Mailbox:set_value("prototype",beamjs_mod_events:prototype_EventEmitter()),
+	Mailbox:set_value("prototype",beamjs_mod_gen_event:prototype_Manager()),
 	Obj.
 
 	
@@ -59,14 +59,14 @@ new_mailbox(#erlv8_fun_invocation{}=I,[]) ->
 new_mailbox(#erlv8_fun_invocation{ this = This }=I,[OptsOrName]) ->
 	Global = I:global(),
 	Require = Global:get_value("require"),
-	EventsMod = Require:call(["events"]),
-	EventEmitterCtor = EventsMod:get_value("EventEmitter"),
+	EventsMod = Require:call(["gen_event"]),
+	EventMgrCtor = EventsMod:get_value("Manager"),
 
-	EventEmitterCtor:call(This,[]),
+	EventMgrCtor:call(This,[]),
 
-	Emitter = This:get_value("emit"),
+	Notify = This:get_value("notify"),
 
-	Pid = spawn(fun () -> mailbox(This, Emitter) end),
+	Pid = spawn(fun () -> mailbox(This, Notify) end),
 	This:set_hidden_value("mailboxServer", Pid),
 
 	case OptsOrName of
@@ -109,8 +109,8 @@ send(#erlv8_fun_invocation{},[{erlv8_object, _, _}=O,Data])  ->
 
 %% private
 
-mailbox(This, Emitter) ->
-	receive Msg -> This:call(Emitter, ["message",Msg]) end, 
-	mailbox(This, Emitter).
+mailbox(This, Notify) ->
+	receive Msg -> This:call(Notify, [Msg]) end, 
+	mailbox(This, Notify).
 
 

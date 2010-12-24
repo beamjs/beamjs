@@ -3,6 +3,9 @@
 -behaviour(erlv8_module).
 -include_lib("erlv8/include/erlv8.hrl").
 
+% internal
+-export([prototype_Manager/0]).
+
 %-behaviour(gen_event). % commented this out just because of init/1 conflict warning
 -export([handle_event/2, terminate/2, handle_call/2, handle_info/2, code_change/3]).
 
