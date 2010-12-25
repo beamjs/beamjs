@@ -32,7 +32,8 @@ prototype_Manager() ->
 			{"deleteHandler", fun delete_handler/2},
 			{"swapHandler", fun swap_handler/2},
 			{"whichHandlers", fun which_handlers/2},
-			{"notify", fun notify/2}
+			{"notify", fun notify/2},
+			{"syncNotify", fun sync_notify/2}
 		   ]).
 
 prototype_Handler() ->
@@ -95,6 +96,10 @@ which_handlers(#erlv8_fun_invocation{ this = This },[]) ->
 notify(#erlv8_fun_invocation{ this = This },[Event]) ->
 	Pid = ?PID,
 	gen_event:notify(Pid, Event).
+
+sync_notify(#erlv8_fun_invocation{ this = This },[Event]) ->
+	Pid = ?PID,
+	gen_event:sync_notify(Pid, Event).
 
 %% gen_event
 handle_event(Event, #erlv8_object{} = Handler) ->
