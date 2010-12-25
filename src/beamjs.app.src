@@ -19,7 +19,8 @@
 			  [
 			   {require, beamjs_mod_require},
 			   {console, beamjs_mod_console},
-			   {beamjs, beamjs_mod_beamjs}
+			   {beamjs, beamjs_mod_beamjs},
+			   {match, "lib_bundles/erlang/match"}
 			  ]},
 			 {modules,
 			  [
@@ -38,9 +39,6 @@
 			 ]},
 		   {erlang,
 			[
-			 {globals,
-			  [{match, "lib_bundles/erlang/match"}]
-			 },
 			 {modules,
 			  [{"dist", beamjs_mod_dist},
 			   {"messaging", beamjs_mod_messaging},
