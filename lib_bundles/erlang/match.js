@@ -34,7 +34,6 @@ exports = function () {
         return undefined;
     }
 
-	var obj = Object.create(Object,{});
 	function match() {
 		var args = slice.apply(arguments);
 		if (typeof this.args == 'object')
