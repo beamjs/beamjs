@@ -38,6 +38,9 @@
 			 ]},
 		   {erlang,
 			[
+			 {default,
+			  [{match, "lib_bundles/erlang/match"}]
+			 },
 			 {available,
 			  [{"dist", beamjs_mod_dist},
 			   {"messaging", beamjs_mod_messaging},
