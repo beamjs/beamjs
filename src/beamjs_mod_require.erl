@@ -33,7 +33,7 @@ require(VM, Filename) when is_pid(VM) ->
 require_fun(#erlv8_fun_invocation{ vm = VM } = Invocation, [Filename]) ->
 	case require_file(Invocation, Filename) of
 		{throw, E} ->
-			case proplists:get_value(Filename,beamjs:modules(available)) of
+			case proplists:get_value(Filename,beamjs_bundle:modules(modules)) of
 				undefined ->
 					{throw, E};
 				Mod when is_atom(Mod) -> %% it is an Erlang-implemented module

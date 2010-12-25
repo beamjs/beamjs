@@ -27,7 +27,7 @@ exports(VM) ->
 			{"reload", fun reload/2},
 			{"bundles",
 			 ?V8Obj([{"__doc__",                
-					  "Bundle is a set of modules (available either directly or through ```require()```). Main idea behind bundles "
+					  "Bundle is a set of modules (available either directly through a global or by loading them with ```require()```). Main idea behind bundles "
 					  "is to enable higher modularity of Beam.js base modules one might want to use. For example, *erlang* bundle "
 					  "provides modules allowing JavaScript to use Erlang components such as messaging, global groups, etc. Think of bundles as a primitive packaging system for *base* modules.\n\n"
 					  "Using bundles is quite trivial. You have two options:\n\n"
@@ -53,23 +53,23 @@ prototype_VM() ->
 			{"global", undefined}]).
 
 loaded(#erlv8_fun_invocation{},[]) ->
-	?V8Arr(beamjs:bundles()).
+	?V8Arr(beamjs_bundle:bundles()).
 
-unload(#erlv8_fun_invocation{},Bundles) ->
-	beamjs:set_bundles(beamjs:bundles() -- lists:map(fun list_to_atom/1, Bundles)),
-	?V8Arr(beamjs:bundles()).
+unload(#erlv8_fun_invocation{ vm = VM },Bundles) ->
+	lists:foreach(fun (Bundle) -> beamjs_bundle:unload(VM, Bundle) end, Bundles),
+	?V8Arr(beamjs_bundle:bundles()).
 
-load(#erlv8_fun_invocation{},Bundles) ->
-	beamjs:set_bundles(beamjs:bundles() ++ lists:map(fun list_to_atom/1, Bundles)),
-	?V8Arr(beamjs:bundles()).
+load(#erlv8_fun_invocation{ vm = VM },Bundles) ->
+	lists:foreach(fun (Bundle) -> beamjs_bundle:load(VM, Bundle) end, Bundles),
+	?V8Arr(beamjs_bundle:bundles()).
 
-with_bundles(#erlv8_fun_invocation{},[#erlv8_array{}=Bundles, #erlv8_fun{}=Callback]) ->
-	Loaded = beamjs:bundles(),
+with_bundles(#erlv8_fun_invocation{ vm = VM },[#erlv8_array{}=Bundles, #erlv8_fun{}=Callback]) ->
+	Loaded = beamjs_bundle:bundles(),
 	ToLoad = lists:map(fun list_to_atom/1, Bundles:list()),
 	ToUnload = ToLoad -- Loaded,
-	beamjs:set_bundles(beamjs:bundles() ++ ToLoad),
+	lists:foreach(fun (Bundle) -> beamjs_bundle:load(VM, Bundle) end, ToLoad),
 	R = Callback:call(),
-	beamjs:set_bundles(beamjs:bundles() -- ToUnload),
+	lists:foreach(fun (Bundle) -> beamjs_bundle:unload(VM, Bundle) end, ToUnload),
 	R.
 
 vm_constructor(#erlv8_fun_invocation{}, []) ->

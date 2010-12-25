@@ -1,8 +1,6 @@
 -module(beamjs).
 -include_lib("erlv8/include/erlv8.hrl").
--export([start/0,stop/0,main/0,
-		 bundles/0, set_bundles/1, modules/1, modules/2,
-		 load_default_modules/1]).
+-export([start/0,stop/0,main/0]).
 
 start() ->
 	application:start(beamjs).
@@ -10,37 +8,7 @@ start() ->
 stop() ->
 	application:stop(beamjs).
 
-bundles() ->
-		case application:get_env(beamjs, bundles) of
-			{ok, Bundles0} ->
-				Bundles0;
-			_ ->
-				[default,runtime]
-		end.
-
-modules(Type,Bundle) ->
-	case application:get_env(beamjs,module_bundles) of
-		{ok, MB} ->
-			proplists:get_value(Type, proplists:get_value(Bundle, MB, []), []);
-		_ ->
-			[]
-	end.
-
-modules(Type) ->
-	lists:flatten(lists:map(fun (B) -> modules(Type, B) end, bundles())).
-
-set_bundles(Bundles) ->
-	application:set_env(beamjs, bundles, lists:usort([default,runtime|Bundles])).
-
-
 %%%
-
-load_default_modules(VM) ->
-	Global = erlv8_vm:global(VM),
-	beamjs_mod_require:init(VM),
-	lists:foreach(fun({Name, Module}) ->
-						  Global:set_value(Name, beamjs_mod_require:require(VM, Module))
-				  end, modules(default, default)).
 
 args(preemption) ->
 	case init:get_argument(jspreemption) of
@@ -69,42 +37,36 @@ args({mod, Arg, Type}) ->
 	case init:get_argument(Arg) of
 		{ok, [[Alias, Mod]]} ->
 			{MB, RuntimeBundle0} = 
-				case application:get_env(beamjs,module_bundles) of
+				case application:get_env(beamjs,available_bundles) of
 					{ok, MB0} ->
 						{MB0, proplists:get_value(runtime,MB0,[])};
 					_ ->
-						application:set_env(beamjs,module_bundles, []),
+						application:set_env(beamjs,available_bundles, []),
 						{[], []}
 				end,
 			TRuntimeModules0 = proplists:get_value(Type, RuntimeBundle0, []),
 			TRuntimeModules = [{Alias, list_to_atom(Mod)}|TRuntimeModules0],
 			RuntimeBundle = [{Type, TRuntimeModules}|proplists:delete(Type, RuntimeBundle0)],
-			application:set_env(beamjs,module_bundles,[{runtime, RuntimeBundle}|proplists:delete(runtime, MB)]);
+			application:set_env(beamjs,available_bundles,[{runtime, RuntimeBundle}|proplists:delete(runtime, MB)]);
 		_ ->
 			false
 	end;
 
 args(mod) ->
-	args({mod, mod, available}).
+	args({mod, mod, modules}).
 
 
 args(VM,bundles) ->
 	case init:get_argument(bundles) of
 		{ok, [Bundles]} ->
-			Global = erlv8_vm:global(VM),
-			AtomBundles = lists:map(fun list_to_atom/1,Bundles),
-			set_bundles(AtomBundles),
-			Global:set_value("module",?V8Obj([{"id","init"},{"exports", ?V8Obj([])}])),
 			lists:foreach(fun(Bundle) ->
-								  lists:foreach(fun({Name, Module}) ->
-														case beamjs_mod_require:require(VM, Module) of
-															{throw, {error, #erlv8_object{}=E}} ->
-																io:format("~s~n",[beamjs_js_formatter:format_exception(VM,E)]);
-															Exports ->
-																Global:set_value(Name, Exports)
-														end
-												end,  modules(default, Bundle))
-						  end, AtomBundles);
+								  case beamjs_bundle:load(VM, Bundle) of
+									  {error, {throw, {error, #erlv8_object{}=E}}} ->
+										  io:format("~s~n",[beamjs_js_formatter:format_exception(VM,E)]);
+									  _ ->
+										  ignore
+								  end
+						  end, Bundles);
 		_ ->
 			false
 	end;
@@ -173,7 +135,9 @@ main() ->
 	args(preemption),
 	start(),
 	{ok, VM} = erlv8_vm:start(),
-	load_default_modules(VM),
+%%	load_default_modules(VM),
+	beamjs_mod_require:init(VM),
+	beamjs_bundle:load(VM, default),
 	NoRepl = args(norepl),
 	args(toolbar),
 	args(mod),

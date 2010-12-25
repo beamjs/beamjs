@@ -8,27 +8,27 @@
                   kernel,
                   stdlib
                  ]},
-  {modules, [beamjs, beamjs_app, beamjs_sup, beamjs_repl_sup, beamjs_repl, beamjs_repl_console, beamjs_js_formatter,
+  {modules, [beamjs, beamjs_app, beamjs_bundle, beamjs_sup, beamjs_repl_sup, beamjs_repl, beamjs_repl_console, beamjs_js_formatter,
 			 beamjs_mod_exports, beamjs_mod_require, beamjs_mod_sys, beamjs_mod_console, beamjs_mod_repl, beamjs_mod_os]},
   {mod, { beamjs_app, []}},
   {env, [
-		 {module_bundles,
+		 {available_bundles,
 		  [
 		   {default, 
-			[{default,
+			[{globals,
 			  [
 			   {require, beamjs_mod_require},
 			   {console, beamjs_mod_console},
 			   {beamjs, beamjs_mod_beamjs}
 			  ]},
-			 {available,
+			 {modules,
 			  [
 			   {"repl", beamjs_mod_repl}
 			  ]
 			 }]},
 		   {node_compat,
 			[
-			 {available,
+			 {modules,
 			  [
 			   {"events", "lib_bundles/node_compat/events"},
 			   {"sys", beamjs_mod_sys},
@@ -38,10 +38,10 @@
 			 ]},
 		   {erlang,
 			[
-			 {default,
+			 {globals,
 			  [{match, "lib_bundles/erlang/match"}]
 			 },
-			 {available,
+			 {modules,
 			  [{"dist", beamjs_mod_dist},
 			   {"messaging", beamjs_mod_messaging},
 			   {"gen_event", beamjs_mod_gen_event}
@@ -49,13 +49,13 @@
 			 ]},
 		   {stdlib,
 			[
-			 {available,
+			 {modules,
 			  [{"os", beamjs_mod_os}
 			  ]}
 			 ]},
 		   {commonjs,
 			[
-			 {available,
+			 {modules,
 			  [{"test", beamjs_mod_test},
 			   {"assert", "lib_bundles/narwhal/assert"}
 			  ]}
