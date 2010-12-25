@@ -1,4 +1,4 @@
-var gen_event = beamjs.bundles.with(['erlang'], function() { return require('gen_event'); });
+var gen_event = require({module: "beamjs_mod_gen_event"});
 
 exports.EventEmitter = function() {
 	this._eventManager = new gen_event.Manager();

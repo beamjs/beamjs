@@ -68,6 +68,8 @@ init([Prompt, InteractionModule, VM, NextState]) ->
 						  CtxGlobal:set_value(K,V)
 				  end, Global:proplist()),
 	CtxGlobal:set_value("require",beamjs_mod_require:exports(VM)), % hack to get require localized in our context
+	Require = CtxGlobal:get_value("require"),
+	Require:set_value("paths", (Global:get_value("require")):get_value("paths")), %% copy paths
 	{ok, NextState, #state{ prompt = Prompt, im = InteractionModule, vm = VM, ctx = Ctx}}.
 
 %%--------------------------------------------------------------------

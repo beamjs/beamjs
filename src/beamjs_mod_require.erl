@@ -30,39 +30,47 @@ require(VM, Filename) when is_pid(VM) ->
 	require_fun(#erlv8_fun_invocation{ vm = VM, ctx = Ctx }, [Filename]).
 
 
+require_fun(#erlv8_fun_invocation{ vm = VM }, [#erlv8_object{}=Opts]) ->
+	case Opts:proplist() of 
+		[{"module", Module}] when is_list(Module) ->
+			Mod = list_to_atom(Module),
+			erlv8_vm:taint(VM, Mod:exports(VM));
+		[{"join", Modules}] when is_list(Modules) ->
+			NewExports = erlv8_vm:taint(VM, ?V8Obj([])),
+			Throws = lists:filter(fun ({throw, _}) ->
+										  true;
+									  (_) ->
+										  false
+								  end,
+								  lists:map(fun (Module) ->
+													Exports = require(VM, Module),
+													lists:foreach(fun ({K,V}) ->
+																		  NewExports:set_value(K,V)
+																  end, Exports:proplist())
+											end, Modules)),
+			case Throws of
+				[Throw|_] -> 
+					Throw;
+				_ ->
+					NewExports
+			end;
+		_ ->
+			{throw, "Unknown key"}
+	end;
+				
+
 require_fun(#erlv8_fun_invocation{ vm = VM } = Invocation, [Filename]) ->
 	case require_file(Invocation, Filename) of
-		{throw, E} ->
-			case proplists:get_value(Filename,beamjs_bundle:modules(modules)) of
-				undefined ->
-					{throw, E};
-				Mod when is_atom(Mod) -> %% it is an Erlang-implemented module
-					erlv8_vm:taint(VM, Mod:exports(VM));
-				Filename1 when is_list(Filename1) ->
-					require_file(Invocation, Filename1);
-				{join, Modules} ->
-					NewExports = erlv8_vm:taint(VM, ?V8Obj([])),
-					Throws = lists:filter(fun ({throw, _}) ->
-												  true;
-											  (_) ->
-												  false
-										  end,
-										  lists:map(fun (Module) ->
-															Exports = require(VM, Module),
-															lists:foreach(fun ({K,V}) ->
-																				  NewExports:set_value(K,V)
-																		  end, Exports:proplist())
-													end, Modules)),
-					case Throws of
-						[Throw|_] -> 
-							Throw;
-						_ ->
-							NewExports
-					end
-			end;
-		Exports ->
-			Exports
-	end.
+ 		{throw, E} ->
+ 			case erlv8_vm:retr(VM, {beamjs_bundle, module, Filename}) of
+ 				undefined ->
+ 					{throw, E};
+				#erlv8_object{}=O ->
+					O
+ 			end;
+ 		Exports ->
+ 			Exports
+ 	end.
 
 file_reader(Path,Filename) ->
 	case file_reader(Path,Filename,".js") of
@@ -83,10 +91,11 @@ file_reader(Path,Filename,Ext) ->
 
 require_file(#erlv8_fun_invocation{ vm = VM } = Invocation, Filename) ->
 	Global = Invocation:global(),
-	Require = Global:get_value("require"),
+	Require = erlv8_vm:taint(VM, fun require_fun/2),  %%Global:get_value("require"),
 	RequireObject = Require:object(),
-	Paths = RequireObject:get_value("paths",erlv8_vm:taint(VM,?V8Arr(["."]))),
-	Dirname  = Global:get_value("__dirname"),
+	Paths = (Global:get_value("require")):get_value("paths",erlv8_vm:taint(VM,?V8Arr([""]))),
+	RequireObject:set_value("paths", Paths),
+	Dirname  = filename:absname(Global:get_value("__dirname")),
 	Sources = lists:filter(fun (not_found) -> 
 								 false;
 							 (_) ->
@@ -122,7 +131,7 @@ require_file(#erlv8_fun_invocation{ vm = VM } = Invocation, Filename) ->
 										  NewRequire:set_value(K,V)
 								  end,  Require:proplist()),
 					NewPaths = NewRequire:get_value("paths"),
-					NewPaths:unshift(Dirname),
+					NewRequire:set_value("paths",?V8Arr(lists:usort([Dirname|(NewPaths:list())]))),
 					case Global:get_value("exports") of
 						undefined ->
 							NewGlobal:set_value("module",Global:get_value("module"));

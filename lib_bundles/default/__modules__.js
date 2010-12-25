@@ -1,0 +1,1 @@
+exports = { repl: require({module: "beamjs_mod_repl"}) }

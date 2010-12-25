@@ -10,6 +10,13 @@ stop() ->
 
 %%%
 
+install_require(VM) ->
+	Global = erlv8_vm:global(VM),
+	beamjs_mod_require:init(VM),
+	Global:set_value("require", beamjs_mod_require:exports(VM)).
+
+%%%
+
 args(preemption) ->
 	case init:get_argument(jspreemption) of
 		{ok, [[V|_]]} ->
@@ -31,37 +38,14 @@ args(toolbar) ->
 			toolbar:start();
 		_ ->
 			false
-	end;
-
-args({mod, Arg, Type}) ->
-	case init:get_argument(Arg) of
-		{ok, [[Alias, Mod]]} ->
-			{MB, RuntimeBundle0} = 
-				case application:get_env(beamjs,available_bundles) of
-					{ok, MB0} ->
-						{MB0, proplists:get_value(runtime,MB0,[])};
-					_ ->
-						application:set_env(beamjs,available_bundles, []),
-						{[], []}
-				end,
-			TRuntimeModules0 = proplists:get_value(Type, RuntimeBundle0, []),
-			TRuntimeModules = [{Alias, list_to_atom(Mod)}|TRuntimeModules0],
-			RuntimeBundle = [{Type, TRuntimeModules}|proplists:delete(Type, RuntimeBundle0)],
-			application:set_env(beamjs,available_bundles,[{runtime, RuntimeBundle}|proplists:delete(runtime, MB)]);
-		_ ->
-			false
-	end;
-
-args(mod) ->
-	args({mod, mod, modules}).
-
+	end.
 
 args(VM,bundles) ->
 	case init:get_argument(bundles) of
 		{ok, [Bundles]} ->
 			lists:foreach(fun(Bundle) ->
-								  case beamjs_bundle:load(VM, Bundle) of
-									  {error, {throw, {error, #erlv8_object{}=E}}} ->
+								  case (catch beamjs_bundle:load(VM, Bundle)) of
+									  {'EXIT', {{bundle, {throw, {error, #erlv8_object{}=E}}}, _}} ->
 										  io:format("~s~n",[beamjs_js_formatter:format_exception(VM,E)]);
 									  _ ->
 										  ignore
@@ -75,16 +59,6 @@ args(VM,jseval) ->
 	case init:get_argument(jseval) of
 		{ok, [[JS]]} ->
 			erlv8_vm:run(VM, erlv8_context:get(VM), JS, {"(command line)",0,0});
-		_ ->
-			false
-	end;
-
-args(VM,default_mod) ->
-	args({mod, default_mod, default}),
-	case init:get_argument(default_mod) of
-		{ok, [[Name, Module]]} ->
-			Global = erlv8_vm:global(VM),
-			Global:set_value(Name, beamjs_mod_require:require(VM, list_to_atom(Module)));
 		_ ->
 			false
 	end;
@@ -135,13 +109,10 @@ main() ->
 	args(preemption),
 	start(),
 	{ok, VM} = erlv8_vm:start(),
-%%	load_default_modules(VM),
-	beamjs_mod_require:init(VM),
+	install_require(VM),
 	beamjs_bundle:load(VM, default),
 	NoRepl = args(norepl),
 	args(toolbar),
-	args(mod),
-	args(VM,default_mod),
 	args(VM,jseval),
 	args(VM,path),
 	args(VM,bundles),
