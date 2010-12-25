@@ -48,5 +48,5 @@ exports = function () {
 	return match;
 }();
 
-exports.var = unification.variable
-exports._ = unification._
+exports.var = unification.variable;
+exports._ = exports.any = unification._;
