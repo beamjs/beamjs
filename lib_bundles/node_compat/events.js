@@ -31,7 +31,7 @@ exports.EventEmitter.prototype = {
 			var _found = false;
 			for (j in _handlers) {
 				var _handler = _handlers[j];
-				if ((_found = (_handler.onEvent._original == _listener)))
+				if ((_found = (_handler._onEvent._original == _listener)))
 					break;
 			}
 			if (!_found) {
