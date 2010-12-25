@@ -15,7 +15,7 @@ init({gen_event, Handler}) -> %% gen_event
 	{ok, Handler};
 
 init({{gen_event, Handler}, Term}) -> %% gen_event
-	case Handler:get_value("onTakeover") of
+	case Handler:get_value("_onTakeover") of
 		#erlv8_fun{}=F ->
 			Handler:call(F, [Term]);
 		_ ->
@@ -37,9 +37,11 @@ prototype_Manager() ->
 
 prototype_Handler() ->
 	?V8Obj([
+			{"onEvent", handler_setter_fun("_onEvent")},
+			{"onTakeover", handler_setter_fun("_onTakeover")},
+			{"onTerminate", handler_setter_fun("_onTeminate")},
 			{"RemoveHandler", ?V8Obj([])}
 		   ]).
-
 
 exports(VM) ->
 	Manager = erlv8_vm:taint(VM,fun new_gen_event/2),
@@ -63,8 +65,15 @@ new_handler(#erlv8_fun_invocation{ this = This } = I,[#erlv8_object{}=Obj]) ->
 				  end, Obj:proplist()),
 	new_handler(I,[]);
 new_handler(#erlv8_fun_invocation{ this = This } = I,[#erlv8_fun{}=F]) ->
-	This:set_value("onEvent",F),
+	This:set_value("_onEvent",F),
 	new_handler(I,[]).
+
+handler_setter_fun(Name) ->
+	F = fun (#erlv8_fun_invocation{ this = This }, [#erlv8_fun{}=Fun]) ->
+				This:set_value(Name, Fun),
+				This
+		end,
+	F.
 	
 
 add_handler(#erlv8_fun_invocation{ this = This },[#erlv8_object{}=Handler]) ->
@@ -89,7 +98,7 @@ notify(#erlv8_fun_invocation{ this = This },[Event]) ->
 
 %% gen_event
 handle_event(Event, #erlv8_object{} = Handler) ->
-	case Handler:get_value("onEvent") of
+	case Handler:get_value("_onEvent") of
 		#erlv8_fun{}=F ->
 			case Handler:call(F,[Event]) of 
 				#erlv8_object{}=Result ->
@@ -114,7 +123,7 @@ handle_info(_Info,State) ->
 	{ok, State}.
 
 terminate(Args, Handler) ->
-	case Handler:get_value("onTerminate") of
+	case Handler:get_value("_onTerminate") of
 		#erlv8_fun{}=F ->
 			Handler:call(F, Args);
 		_ ->
