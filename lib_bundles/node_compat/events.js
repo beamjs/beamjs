@@ -10,7 +10,7 @@ addListener = function(event, listener) {
 	var f = function (arguments) {
 		args = Array.apply(this, arguments);
 		if (that._eventListeners[event].indexOf(listener) == -1)  {
-			this.removeHandler();
+			return this.RemoveHandler;
 		} else if (args.shift() == event) {
 			listener.apply(this,args);
 		}
