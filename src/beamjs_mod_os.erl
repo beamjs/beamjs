@@ -60,7 +60,13 @@ getenv(#erlv8_fun_invocation{},[VarName]) when is_list(VarName) ->
 	os:getenv(VarName).
 
 getfullenv(#erlv8_fun_invocation{},[]) ->
-	?V8Obj(lists:map(fun split_env_var/1, os:getenv())).
+	ParseVar = fun (VarStr) ->
+			Tokens = string:tokens(VarStr, "="),
+			Name = lists:nth(1, Tokens),
+			Value = string:join(lists:delete(Name, Tokens), "="),
+			{ Name, Value }
+	end,
+	?V8Obj(lists:map(ParseVar, os:getenv())).
 
 putenv(#erlv8_fun_invocation{},[VarName, Value]) when is_list(VarName) ->
 	os:putenv(VarName, Value).
@@ -72,10 +78,3 @@ type(#erlv8_fun_invocation{},[]) ->
 version(#erlv8_fun_invocation{},[]) ->
 	{Major, Minor, Release} = os:version(),
 	?V8Arr([Major, Minor, Release]).
-
-% Utility functions
-split_env_var(VarStr) ->
-	Tokens = string:tokens(VarStr, "="),
-	Name   = lists:nth(1, Tokens),
-	Value  = string:join(lists:delete(Name, Tokens), "="),
-	{ Name, Value }.
