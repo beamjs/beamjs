@@ -15,6 +15,7 @@ Resources
 
 * [Wiki](https://github.com/beamjs/beamjs/wiki)
 * [Documentation Browser](http://doc.beamjs.org)
+* [Mailing list](http://groups.google.com/group/beamjs)
 
 Download
 --------
