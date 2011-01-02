@@ -1,6 +1,6 @@
 -module(beamjs_mod_beamjs).
 
--behaviour(erlv8_module).
+-behaviour(beamjs_module).
 
 -export([exports/1, init/1]).
 

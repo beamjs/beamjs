@@ -1,7 +1,7 @@
 -module(beamjs_mod_require).
 -export([exports/1,init/1, require/2]).
 
--behaviour(erlv8_module).
+-behaviour(beamjs_module).
 -include_lib("erlv8/include/erlv8.hrl").
 
 init(VM) ->

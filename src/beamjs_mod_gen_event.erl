@@ -1,6 +1,6 @@
 -module(beamjs_mod_gen_event).
 -export([exports/1,init/1]).
--behaviour(erlv8_module).
+-behaviour(beamjs_module).
 -include_lib("erlv8/include/erlv8.hrl").
 
 % internal
@@ -23,7 +23,7 @@ init({{gen_event, Handler}, Term}) -> %% gen_event
 	end,
 	{ok, Handler};
 
-init(_VM) -> %% erlv8_module
+init(_VM) -> %% beamjs_module
 	ok.
 
 prototype_Manager() ->
