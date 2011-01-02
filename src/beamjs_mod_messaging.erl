@@ -14,16 +14,15 @@ exports(VM) ->
 														   ?V8Obj([{"__doc__",
 																	"A constructor for `Mailbox`, an [EventEmitter](/events/EventEmitter) that emits a single message `message(Message)` for each received message.\n\n"
 																	"#### Registers unnamed mailbox\n\n"
-																	"    new Mailbox()\n\n"
+																	"    new Mailbox(callback)\n\n"
 																	"#### Registers a local named mailbox:\n\n"
-																	"    new Mailbox(name)\n\n"
+																	"    new Mailbox(name, callback)\n\n"
 																	"where *name* is a string\n\n"
 																	"#### Registers a global named mailbox:\n\n"
-																	"    new Mailbox({global: name})\n\n"
+																	"    new Mailbox({global: name}, callback)\n\n"
 																	"where *name* is an expression\n\n"
 																	"### Example\n\n"
-																	"    var mbox = new (require('messaging').Mailbox)();\n"
-																	"    mbox.on(\"message\",function (msg) { ... });\n"}]))},
+																	"    var mbox = new (require('messaging').Mailbox)(function (msg) { ... });\n"}]))},
 								 {"send", erlv8_fun:new(fun send/2,
 														?V8Obj([{"__doc__",
 																 "Sends a message.\n\n"
