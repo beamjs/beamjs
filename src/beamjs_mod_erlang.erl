@@ -15,9 +15,11 @@ exports(VM) ->
 	AtomProto:set_value("toString", fun (#erlv8_fun_invocation{ this = This }, []) -> atom_to_list(This) end),
 	PortProto = erlv8_extern:get_proto(VM, port),
 	PortProto:set_value("toString", fun (#erlv8_fun_invocation{ this = This }, []) -> "[port " ++ erlang:port_to_list(This) ++ "]" end), %% And this
+	BinProto = erlv8_extern:get_proto(VM, bin),
+	BinProto:set_value("toString", fun (#erlv8_fun_invocation{ this = This }, []) -> "[binary " ++ lists:flatten(io_lib:format("~p",[This])) ++ "]" end),
 
 	?V8Obj([{"apply", fun erlang_apply/2},
-			{"atom", fun new_atom/2}, {"tuple", fun new_tuple/2}
+			{"atom", fun new_atom/2}, {"tuple", fun new_tuple/2}, {"binary", fun new_binary/2}
 		   ]).
 
 new_atom(#erlv8_fun_invocation{ vm = VM, is_construct_call = ICC }, [Atom]) when is_list(Atom) ->
@@ -34,6 +36,22 @@ new_tuple(#erlv8_fun_invocation{ vm = VM, is_construct_call = ICC }, [#erlv8_arr
 			{throw, {error, "tuple() can't be used a constructor"}};
 		false ->
 			erlv8_extern:extern(VM, list_to_tuple(Array:list()))
+	end.
+
+new_binary(#erlv8_fun_invocation{ vm = VM, is_construct_call = ICC }, [#erlv8_array{}=Array]) ->
+	case ICC of
+		true ->
+			{throw, {error, "binary() can't be used a constructor"}};
+		false ->
+			erlv8_extern:extern(VM, list_to_binary(Array:list()))
+	end;
+
+new_binary(#erlv8_fun_invocation{ vm = VM, is_construct_call = ICC }, [List]) when is_list(List) ->
+	case ICC of
+		true ->
+			{throw, {error, "binary() can't be used a constructor"}};
+		false ->
+			erlv8_extern:extern(VM, list_to_binary(List))
 	end.
 
 erlang_apply(#erlv8_fun_invocation{ vm = VM }, [Module, Fun, #erlv8_array{} = Args]) when is_list(Module) andalso is_list(Fun) ->
