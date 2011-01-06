@@ -8,23 +8,33 @@ init(_VM) ->
 
 exports(VM) ->
 	PidProto = erlv8_extern:get_proto(VM, pid),
-	PidProto:set_value("toString", fun (#erlv8_fun_invocation{}, []) -> "[pid]" end),
+	PidProto:set_value("toString", fun (#erlv8_fun_invocation{ this = This }, []) -> "[pid " ++ pid_to_list(This) ++ "]" end), %% I know erlang documentation says we shouldn't use it, but I wonder how terribly I'll be punished for this?
 	RefProto = erlv8_extern:get_proto(VM, ref),
-	RefProto:set_value("toString", fun (#erlv8_fun_invocation{}, []) -> "[ref]" end),
+	RefProto:set_value("toString", fun (#erlv8_fun_invocation{ this = This }, []) -> "[ref " ++ erlang:ref_to_list(This) ++ "]" end), %% Same goes to this
+	AtomProto = erlv8_extern:get_proto(VM, atom),
+	AtomProto:set_value("toString", fun (#erlv8_fun_invocation{ this = This }, []) -> atom_to_list(This) end),
+	PortProto = erlv8_extern:get_proto(VM, port),
+	PortProto:set_value("toString", fun (#erlv8_fun_invocation{}, []) -> "[port]" end),
 
-	Atom = erlv8_vm:taint(VM, fun new_Atom/2),
-	erlv8_vm:stor(VM, {?MODULE, atom}, Atom),
-	Tuple = erlv8_vm:taint(VM, fun new_Tuple/2),
-	erlv8_vm:stor(VM, {?MODULE, tuple}, Tuple),
 	?V8Obj([{"apply", fun erlang_apply/2},
-			{"Atom", Atom}, {"Tuple", Tuple}
+			{"atom", fun new_atom/2}, {"tuple", fun new_tuple/2}
 		   ]).
 
-new_Atom(#erlv8_fun_invocation{ this = This }, [Atom]) when is_list(Atom) ->
-	This:set_value("atom", Atom).
+new_atom(#erlv8_fun_invocation{ vm = VM, is_construct_call = ICC }, [Atom]) when is_list(Atom) ->
+	case ICC of
+		true ->
+			{throw, {error, "atom() can't be used a constructor"}};
+		false ->
+			erlv8_extern:extern(VM, list_to_atom(Atom))
+	end.
 
-new_Tuple(#erlv8_fun_invocation{ this = This }, [#erlv8_array{}=Array]) ->
-	This:set_value("tuple", Array).
+new_tuple(#erlv8_fun_invocation{ vm = VM, is_construct_call = ICC }, [#erlv8_array{}=Array]) ->
+	case ICC of
+		true ->
+			{throw, {error, "tuple() can't be used a constructor"}};
+		false ->
+			erlv8_extern:extern(VM, list_to_tuple(Array:list()))
+	end.
 
 erlang_apply(#erlv8_fun_invocation{ vm = VM }, [Module, Fun, #erlv8_array{} = Args]) when is_list(Module) andalso is_list(Fun) ->
 	from_native(VM, erlang:apply(list_to_atom(Module), list_to_atom(Fun), to_native(VM, Args))).
@@ -32,19 +42,9 @@ erlang_apply(#erlv8_fun_invocation{ vm = VM }, [Module, Fun, #erlv8_array{} = Ar
 -define(Is(O,X),  ((O:get_prototype()):get_value("constructor")):equals(erlv8_vm:retr(VM, {?MODULE, X}))).
 
 to_native(VM, #erlv8_object{}=O) ->
-	case ?Is(O,atom) of
-		true ->
-			list_to_atom(O:get_value("atom"));
-		false ->
-			case ?Is(O,tuple) of
-				true ->
-					list_to_tuple(lists:map(fun (V) -> to_native(VM, V) end, (O:get_value("tuple")):list()));
-				false ->
-					lists:map(fun ({K,V}) ->
-									  {K, to_native(VM, V)}
-							  end, O:proplist())
-			end
-	end;
+	lists:map(fun ({K,V}) ->
+					  {K, to_native(VM, V)}
+			  end, O:proplist());
 
 to_native(VM, #erlv8_array{}=A) ->
 	lists:map(fun (V) -> to_native(VM, V) end, A:list());
@@ -53,15 +53,14 @@ to_native(_VM, Other) ->
 	Other.
 
 from_native(VM, T) when is_tuple(T) ->
-	L = tuple_to_list(T),
-	TupleCtor = erlv8_vm:retr(VM, {?MODULE, tuple}),
-	TupleCtor:instantiate([?V8Arr(lists:map(fun (V) -> from_native(VM, V) end, L))]);
+	erlv8_extern:extern(VM, T);
 
 from_native(VM, A) when is_atom(A) ->
-	S = atom_to_list(A),
-	AtomCtor = erlv8_vm:retr(VM, {?MODULE, atom}),
-	AtomCtor:instantiate([S]);
+	erlv8_extern:extern(VM, A);
 	
+from_native(VM, P) when is_port(P) ->
+	erlv8_extern:extern(VM, P);
+
 from_native(VM, L) when is_list(L) ->
 	case is_simple_proplist(L) of
 		true ->
