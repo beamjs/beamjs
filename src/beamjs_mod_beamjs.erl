@@ -67,6 +67,8 @@ vm_run(#erlv8_fun_invocation{ this = This }, [Code]) when is_list(Code) ->
 			{throw, {error, "VM is not started"}};
 		VM ->
 			case erlv8_vm:run(VM, Code) of
+				{throw, Error} ->
+					Error;
 				{ok, Result} ->
 					Result;
 				{compilation_failed, Error} ->
