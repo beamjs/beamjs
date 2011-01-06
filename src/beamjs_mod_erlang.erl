@@ -7,6 +7,10 @@ init(_VM) ->
 	ok.
 
 exports(VM) ->
+	PidProto = erlv8_extern:get_pid_proto(VM),
+	PidProto:set_value("toString", fun (#erlv8_fun_invocation{}, []) -> "[pid]" end),
+	RefProto = erlv8_extern:get_ref_proto(VM),
+	RefProto:set_value("toString", fun (#erlv8_fun_invocation{}, []) -> "[ref]" end),
 	Atom = erlv8_vm:taint(VM, fun new_Atom/2),
 	erlv8_vm:stor(VM, {?MODULE, atom}, Atom),
 	Tuple = erlv8_vm:taint(VM, fun new_Tuple/2),
