@@ -25,7 +25,7 @@ exports(VM) ->
 new_atom(#erlv8_fun_invocation{ vm = VM, is_construct_call = ICC }, [Atom]) when is_list(Atom) ->
 	case ICC of
 		true ->
-			{throw, {error, "atom() can't be used a constructor"}};
+			{throw, {error, "atom() can't be used as a constructor"}};
 		false ->
 			erlv8_extern:extern(VM, list_to_atom(Atom))
 	end.
@@ -33,7 +33,7 @@ new_atom(#erlv8_fun_invocation{ vm = VM, is_construct_call = ICC }, [Atom]) when
 new_tuple(#erlv8_fun_invocation{ vm = VM, is_construct_call = ICC }, [#erlv8_array{}=Array]) ->
 	case ICC of
 		true ->
-			{throw, {error, "tuple() can't be used a constructor"}};
+			{throw, {error, "tuple() can't be used as a constructor"}};
 		false ->
 			erlv8_extern:extern(VM, list_to_tuple(Array:list()))
 	end.
@@ -41,7 +41,7 @@ new_tuple(#erlv8_fun_invocation{ vm = VM, is_construct_call = ICC }, [#erlv8_arr
 new_binary(#erlv8_fun_invocation{ vm = VM, is_construct_call = ICC }, [#erlv8_array{}=Array]) ->
 	case ICC of
 		true ->
-			{throw, {error, "binary() can't be used a constructor"}};
+			{throw, {error, "binary() can't be used as a constructor"}};
 		false ->
 			erlv8_extern:extern(VM, list_to_binary(Array:list()))
 	end;
@@ -49,7 +49,7 @@ new_binary(#erlv8_fun_invocation{ vm = VM, is_construct_call = ICC }, [#erlv8_ar
 new_binary(#erlv8_fun_invocation{ vm = VM, is_construct_call = ICC }, [List]) when is_list(List) ->
 	case ICC of
 		true ->
-			{throw, {error, "binary() can't be used a constructor"}};
+			{throw, {error, "binary() can't be used as a constructor"}};
 		false ->
 			erlv8_extern:extern(VM, list_to_binary(List))
 	end.
