@@ -57,8 +57,6 @@ new_binary(#erlv8_fun_invocation{ vm = VM, is_construct_call = ICC }, [List]) wh
 erlang_apply(#erlv8_fun_invocation{ vm = VM }, [Module, Fun, #erlv8_array{} = Args]) when is_list(Module) andalso is_list(Fun) ->
 	from_native(VM, erlang:apply(list_to_atom(Module), list_to_atom(Fun), to_native(VM, Args))).
 
--define(Is(O,X),  ((O:get_prototype()):get_value("constructor")):equals(erlv8_vm:retr(VM, {?MODULE, X}))).
-
 to_native(VM, #erlv8_object{}=O) ->
 	lists:map(fun ({K,V}) ->
 					  {K, to_native(VM, V)}
