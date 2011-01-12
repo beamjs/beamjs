@@ -78,22 +78,9 @@ vm_run(#erlv8_fun_invocation{ this = This }, [Code]) when is_list(Code) ->
 			end
 	end.
 
-vm_run_async(#erlv8_fun_invocation{ this = This }, [Code, #erlv8_fun{}=Callback]) when is_list(Code) ->
+vm_run_async(#erlv8_fun_invocation{} = I, [Code, #erlv8_fun{}=Callback]) when is_list(Code) ->
 	spawn(fun () ->
-				  Result = 
-				  case This:get_hidden_value("VMServer") of
-					  undefined ->
-						  {throw, {error, "VM is not started"}};
-					  VM ->
-						  case erlv8_vm:run(VM, Code) of
-							  {ok, Result0} ->
-								  Result0;
-							  {compilation_failed, Error} ->
-								  {throw, Error};
-							  {exception, Error} ->
-								  {throw, Error}
-						  end
-				  end,
+				  Result = vm_run(I, [Code]),
 				  Callback:call([Result])
 		  end),
 	ok.
