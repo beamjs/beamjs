@@ -6,12 +6,12 @@ exports.start = function () {
 	var node = require({module: "beamjs_mod_dist"}).node();
 	var prompt = (node == "nonode@nohost" ? "" : "(" + node + ")") + "beam.js> ";
 	erlang.apply("io","get_line",[prompt], function(expr) {
-					 beamjs.VM.current.runAsync(expr, function (result) {
-													if (result != null) {
-														console.log(result);
-													}
-													that.start();
-												});
+					 beamjs.VM.current.run(expr, function (result) {
+											   if (result != null) {
+												   console.log(result);
+											   }
+											   that.start();
+										   });
 				 });
 };
 			 

@@ -40,7 +40,6 @@ prototype_VM() ->
 	?V8Obj([{"start", fun vm_start/2},
 			{"stop", fun vm_stop/2},
 			{"run", fun vm_run/2},
-			{"runAsync", fun vm_run_async/2},
 			{"global", undefined}]).
 
 vm_constructor(#erlv8_fun_invocation{}, []) ->
@@ -76,9 +75,9 @@ vm_run(#erlv8_fun_invocation{ this = This }, [Code]) when is_list(Code) ->
 				{exception, Error} ->
 					{throw, Error}
 			end
-	end.
+	end;
 
-vm_run_async(#erlv8_fun_invocation{} = I, [Code, #erlv8_fun{}=Callback]) when is_list(Code) ->
+vm_run(#erlv8_fun_invocation{} = I, [Code, #erlv8_fun{}=Callback]) when is_list(Code) ->
 	spawn(fun () ->
 				  Result = vm_run(I, [Code]),
 				  Callback:call([Result])
