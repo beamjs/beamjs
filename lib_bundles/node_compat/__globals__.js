@@ -1,4 +1,4 @@
 exports = {
-    console: require({module: "beamjs_mod_console"}),
+    console: require("../default/console"),
     process: require("process")
 }

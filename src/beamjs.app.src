@@ -9,7 +9,7 @@
                   stdlib
                  ]},
   {modules, [beamjs, beamjs_app, beamjs_bundle, beamjs_sup, beamjs_repl_console, beamjs_js_formatter,
-			 beamjs_mod_exports, beamjs_mod_require, beamjs_mod_sys, beamjs_mod_console, beamjs_mod_os, beamjs_mod_dns]},
+			 beamjs_mod_exports, beamjs_mod_require, beamjs_mod_sys, beamjs_mod_os, beamjs_mod_dns]},
   {mod, { beamjs_app, []}},
   {env, []}
  ]}.
