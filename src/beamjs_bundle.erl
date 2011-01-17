@@ -16,7 +16,7 @@ load(VM, Bundle) when is_list(Bundle) ->
 			lists:foreach(fun ({K,V}) ->
 								  Global:set_value(K,V)
 						  end, Globals:proplist());
-		_ ->
+		_V ->
 			error({bundle, Globals})
 	end,
 	Modules = Require:call([filename:join(["lib_bundles",Bundle,"__modules__"])]),
