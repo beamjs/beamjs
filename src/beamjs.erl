@@ -46,7 +46,7 @@ args(VM,bundles) ->
 			lists:foreach(fun(Bundle) ->
 								  case (catch beamjs_bundle:load(VM, Bundle)) of
 									  {'EXIT', {{bundle, {throw, {error, #erlv8_object{}=E}}}, _}} ->
-										  io:format("~s~n",[beamjs_js_formatter:format_exception(VM,E)]);
+										  io:format("~s~n",[E:proplist()]);
 									  _ ->
 										  ignore
 								  end
@@ -88,7 +88,7 @@ args(VM,load) ->
 								  Require:set_value("main",Module),
 								  case Require:call([File]) of
 									  {throw, {error, #erlv8_object{}=E}} ->
-										  io:format("~s~n",[beamjs_js_formatter:format_exception(VM,E)]);
+										  io:format("~s~n",[E:proplist()]);
 									  _ ->
 										  ignore
 								  end
