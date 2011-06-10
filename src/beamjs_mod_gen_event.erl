@@ -61,7 +61,7 @@ new_gen_event(#erlv8_fun_invocation{ this = This },[]) ->
 new_handler(#erlv8_fun_invocation{},[]) ->
 	undefined;
 new_handler(#erlv8_fun_invocation{ this = This } = I,[#erlv8_object{}=Obj]) ->
-	lists:foreach(fun (K, V) ->
+	lists:foreach(fun ({K, V}) ->
 						  This:set_value(K,V)
 				  end, Obj:proplist()),
 	new_handler(I,[]);
